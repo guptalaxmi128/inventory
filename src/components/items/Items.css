@@ -1,0 +1,46 @@
+/* Items.css */
+
+
+@media (max-width: 768px) {
+    .button-container {
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+    .mobile-buttons {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .mobile-button {
+      margin-bottom: 10px;
+      width: 100%;
+      margin-right: 10px;
+    }
+    .mobile-search {
+        flex-direction: column;
+    }
+  }
+
+
+  @media (min-width: 769px) {
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+  
+   
+    .mobile-buttons {
+      display: flex;
+      flex-direction: row;
+      gap: 10px; 
+    }
+  
+  
+    .mobile-search {
+      margin-left: 10px;
+      width:200px;
+    }
+  }
+  
