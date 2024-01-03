@@ -45,7 +45,6 @@ const columns = [
   },
 ];
 
-
 const columnsWithAction = [
   ...columns,
   {
@@ -66,20 +65,38 @@ const AllEmployees = () => {
   const member = useSelector((state) => state.addMember.members);
   // console.log(member);
 
-  const [data, setData] = useState(member?.data || []);
+  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("large");
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    dispatch(getMember());
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getMember());
+        setData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
+
+  // useEffect(() => {
+  //   if(member && member.data)
+  //  setData(member.data)
+  // }, [member]);
 
   const csvData = [
     ["Name", "Email", "Mobile Number", "Department", "Post", "Attendance Id"],
-    ...data.map((item) => [
+    ...data?.map((item) => [
       item.name,
       item.email,
       item.mobileNumber,
@@ -171,13 +188,13 @@ const AllEmployees = () => {
     if (searchQuery.trim() === "") {
       setFilteredData(null);
     } else {
-      const filtered = data.filter((item) => {
+      const filtered = data?.filter((item) => {
         return (
           item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.mobileNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.post.toLowerCase().includes(searchQuery.toLowerCase())||
+          item.post.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.attendanceId.toLowerCase().includes(searchQuery.toLowerCase())
         );
       });
@@ -192,14 +209,14 @@ const AllEmployees = () => {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <p style={{ fontSize: "22px" }}>Ticket</p>
+        <p style={{ fontSize: "22px" }}>Employees</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
             <a href="/">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>Ticket</Breadcrumb.Item>
+          <Breadcrumb.Item>Employees</Breadcrumb.Item>
         </Breadcrumb>
       </div>
       {/* <Link to={"/admin/add-employee"} style={{ textDecoration: "none" }}>
@@ -243,6 +260,7 @@ const AllEmployees = () => {
           <Table
             columns={columnsWithAction}
             dataSource={filteredData || data}
+            loading={loading}
           />
         </div>
       </div>

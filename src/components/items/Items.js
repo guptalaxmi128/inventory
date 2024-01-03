@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   Breadcrumb,
   Button,
@@ -9,6 +9,7 @@ import {
   Modal,
   Form,
   Select,
+  message
 } from "antd";
 import {
   EditOutlined,
@@ -16,75 +17,121 @@ import {
   PlusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-
+import { useDispatch } from "react-redux";
+import { getAssetsCategoryStore } from "../../actions/storeKeeper/assetsCategory/assetsCategory";
 import "./Items.css";
+import { addAssets ,getAssets,updateAssets} from "../../actions/storeKeeper/assets/assets";
+
 
 const { Option } = Select;
 
-const columns = [
-  {
-    title: "Item Name",
-    dataIndex: "itemName",
-    key: "itemName",
-   
-  },
-  {
-    title: "Status",
-    key: "status",
-    dataIndex: "status",
-    render: (_, { status }) => (
-      <>
-        {status.map((status) => {
-          let color = status.length > 5 ? "green" : "volcano";
 
-          return (
-            <Tag color={color} key={status}>
-              {status.toUpperCase()}
-            </Tag>
-          );
-        })}
-      </>
-    ),
-  },
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
-];
-const data = [
-  {
-    key: "1",
-    itemName: "Clothes",
-    status: ["Active"],
-  },
-  {
-    key: "2",
-    itemName: "Computer",
-    status: ["Active"],
-  },
-  {
-    key: "3",
-    itemName: "Mobile",
-    status: ["Active"],
-  },
-];
+// const data = [
+//   {
+//     key: "1",
+//     itemName: "Clothes",
+//     status: ["Active"],
+//   },
+//   {
+//     key: "2",
+//     itemName: "Computer",
+//     status: ["Active"],
+//   },
+//   {
+//     key: "3",
+//     itemName: "Mobile",
+//     status: ["Active"],
+//   },
+// ];
 
 const Items = () => {
+  const dispatch=useDispatch();
   const [size, setSize] = useState("large");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [assetsData,setAssetsData]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [data,setData]=useState([]);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const columns = [
+    {
+      title: "Item Name",
+      dataIndex: "itemName",
+      key: "itemName",
+     
+    },
+    {
+      title: "Assets Category",
+      dataIndex: "assetCategory",
+      key: "assetCategory",
+    },
+    // {
+    //   title: "Status",
+    //   key: "status",
+    //   dataIndex: "status",
+    //   render: (_, { status }) => (
+    //     <>
+    //       {status.map((status) => {
+    //         let color = status.length > 5 ? "green" : "volcano";
+  
+    //         return (
+    //           <Tag color={color} key={status}>
+    //             {status.toUpperCase()}
+    //           </Tag>
+    //         );
+    //       })}
+    //     </>
+    //   ),
+    // },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined style={{ fontSize: "16px" }}  onClick={() => handleEditClick(record.id)} />
+          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+        </Space>
+      ),
+    },
+  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAssetsCategoryStore());
+        setAssetsData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAssets());
+        setData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
 
   const csvData = [
-    ["Item Name", "Status"],
-    ...data.map((item) => [item.itemName, item.status.join(", ")]),
+    ["Item Name","Assets Category","Quantity"], 
+    ...data?.map(item => [item.itemName,item.assetCategory,item.quantity]), 
   ];
 
   const arrayToCSV = (arr) => {
@@ -115,18 +162,69 @@ const Items = () => {
     form.resetFields();
   };
 
-  const handleSave = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        console.log("Received values:", values);
-        setIsModalVisible(false);
-        form.resetFields();
-      })
-      .catch((error) => {
-        console.error("Validation failed:", error);
-      });
+  // const handleSave = async () => {
+  //   try {
+  //     await form.validateFields();
+  //     const values = form.getFieldsValue();
+  //     console.log("Received values:", values);
+  
+  //     const res = await dispatch(addAssets(values));
+  
+  //     if (res.success) {
+  //       message.success(res.message);
+  //       setIsModalVisible(false);
+  //       form.resetFields();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during validation or dispatch:", error);
+  
+  //     // Optionally, you can display an error message to the user
+  //     message.error("An error occurred. Please try again.");
+  //   }
+  // };
+
+  const handleEditClick = (itemId) => {
+    setSelectedItemId(itemId);
+    setIsModalVisible(true);
+    const selectedItem = data.find((item) => item.itemId === itemId);
+    if (selectedItem) {
+      form.setFieldsValue(selectedItem);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      const data={
+        id:selectedItemId,
+        ...values
+      }
+      if (selectedItemId) {
+        // Update existing item
+        const res = await dispatch(updateAssets(data));
+        if (res.success) {
+          message.success(res.message);
+          setIsModalVisible(false);
+          form.resetFields();
+          setSelectedItemId(null);
+        }
+      } else {
+        // Add new item
+        const res = await dispatch(addAssets(values));
+        if (res.success) {
+          message.success(res.message);
+          setIsModalVisible(false);
+          form.resetFields();
+        }
+      }
+    } catch (error) {
+      console.error("Error during validation or dispatch:", error);
+      message.error("An error occurred. Please try again.");
+    }
+  };
+
+  
 
   const handlePrint = () => {
     setPrintData(data);
@@ -236,10 +334,10 @@ const Items = () => {
           </div>
         </div>
 
-        <Table columns={columns} dataSource={data} />
+        <Table columns={columns} dataSource={data} loading={loading} />
       </div>
       <Modal
-        title="Add Items"
+        title={selectedItemId ? "Edit Item" : "Add Items"}
         visible={isModalVisible}
         onOk={handleSave}
         onCancel={handleModalCancel}
@@ -261,6 +359,19 @@ const Items = () => {
             <Input placeholder="Enter item name" />
           </Form.Item>
           <Form.Item
+            label="Assets Category"
+            name="assetCategory"
+            rules={[{ required: true, message: "Please select assets category!" }]}
+          >
+            <Select placeholder="Assets Category" >
+              {assetsData?.map((data, index) => (
+                <Option key={index} value={data.categoryName}>
+                  {data.categoryName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          {/* <Form.Item
             name="status"
             label="Status"
             rules={[
@@ -275,6 +386,19 @@ const Items = () => {
               <Option value="Active">Active</Option>
               <Option value="Inactive">Inactive</Option>
             </Select>
+          </Form.Item> */}
+          <Form.Item
+            name="quantity"
+            label="Quantity"
+            rules={[
+              {
+                required: true,
+                message: "Please enter quantity",
+              },
+            ]}
+         
+          >
+           <Input placeholder="Quantity" type="number" />
           </Form.Item>
         </Form>
       </Modal>

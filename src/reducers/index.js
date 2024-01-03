@@ -16,6 +16,7 @@ import assetsCategoryStore from './storeKeeper/assetsCategory/assetsCategory';
 import technicianEmployee from './itTechnician/employee/employee';
 import assetsTechnician from './itTechnician/assets/assets';
 import assets from './admin/assets/assets';
+import assetsStore from './storeKeeper/assets/assets';
 
 export const reducers = combineReducers({
 auth,
@@ -34,6 +35,7 @@ assetsCategory,
 assetsCategoryStore,
 technicianEmployee,
 assetsTechnician,
-assets
+assets,
+assetsStore
 
 });

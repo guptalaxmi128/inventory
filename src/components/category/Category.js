@@ -1,79 +1,92 @@
-import React, { useState,useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Tag, Input, Modal, Form, Select,message } from "antd";
+import React, { useState, useEffect } from "react";
+import {
+  Breadcrumb,
+  Button,
+  Space,
+  Table,
+  Tag,
+  Input,
+  Modal,
+  Form,
+  Select,
+  message,
+} from "antd";
 import {
   EditOutlined,
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useSelector,useDispatch } from "react-redux";
-import '../items/Items.css'; 
-import { addAssetsCategoryStore,getAssetsCategoryStore} from "../../actions/storeKeeper/assetsCategory/assetsCategory";
+import { useSelector, useDispatch } from "react-redux";
+import "../items/Items.css";
+import {
+  addAssetsCategoryStore,
+  getAssetsCategoryStore,
+} from "../../actions/storeKeeper/assetsCategory/assetsCategory";
 
 const { Option } = Select;
 
 const columns = [
-    {
-      title: "Category name",
-      dataIndex: "categoryName",
-      key: "categoryName",
-    },
-    {
-      title: "Category number",
-      dataIndex: "categoryNumber",
-      key: "categoryNumber",
-    },
-    // {
-    //   title: "Status",
-    //   key: "status",
-    //   dataIndex: "status",
-    //   render: (_, { status }) => (
-    //     <>
-    //       {status.map((status) => {
-    //         let color = status.length > 5 ? "green" : "volcano";
-  
-    //         return (
-    //           <Tag color={color} key={status}>
-    //             {status.toUpperCase()}
-    //           </Tag>
-    //         );
-    //       })}
-    //     </>
-    //   ),
-    // },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Space size="middle">
-          <EditOutlined style={{ fontSize: "16px" }} />
-          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-        </Space>
-      ),
-    },
-  ];
+  {
+    title: "Category name",
+    dataIndex: "categoryName",
+    key: "categoryName",
+  },
+  {
+    title: "Category number",
+    dataIndex: "categoryNumber",
+    key: "categoryNumber",
+  },
+  // {
+  //   title: "Status",
+  //   key: "status",
+  //   dataIndex: "status",
+  //   render: (_, { status }) => (
+  //     <>
+  //       {status.map((status) => {
+  //         let color = status.length > 5 ? "green" : "volcano";
 
+  //         return (
+  //           <Tag color={color} key={status}>
+  //             {status.toUpperCase()}
+  //           </Tag>
+  //         );
+  //       })}
+  //     </>
+  //   ),
+  // },
+  {
+    title: "Action",
+    key: "action",
+    render: (_, record) => (
+      <Space size="middle">
+        <EditOutlined style={{ fontSize: "16px" }} />
+        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+      </Space>
+    ),
+  },
+];
 
 const Category = () => {
-  const dispatch=useDispatch();
-  const assets=useSelector((state)=>state.assetsCategoryStore.category)
-  const [data,setData]=useState(assets?.data || [])
+  const dispatch = useDispatch();
+  const assets = useSelector((state) => state.assetsCategoryStore.category);
+  const [data, setData] = useState([]);
   const [size, setSize] = useState("large");
-  const [categoryName,setCategoryName]=useState('');
+  const [categoryName, setCategoryName] = useState("");
   const [successMsg, setSuccessMsg] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [printData, setPrintData] = useState([]); 
+  const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const handleSave = async () => {
-   
     try {
       const data = {
-      categoryName
+        categoryName,
       };
       await dispatch(addAssetsCategoryStore(data));
-     
+
       setSuccessMsg(true);
       message.success("Assets category added successfully");
       setIsModalVisible(false);
@@ -87,20 +100,36 @@ const Category = () => {
   };
 
   useEffect(() => {
-  dispatch(getAssetsCategoryStore());
-  }, [dispatch])
- 
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAssetsCategoryStore());
+        setData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  // useEffect(() => {
+  //   if(assets)
+  //  setData(assets.data)
+  // }, [assets]);
 
   const csvData = [
-    ["Category Name","Category Number"], 
-    ...data.map(item => [item.categoryName,item.categoryNumber]), 
+    ["Category Name", "Category Number"],
+    ...data?.map((item) => [item.categoryName, item.categoryNumber]),
   ];
 
-
   const arrayToCSV = (arr) => {
-    return arr.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    return arr
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
   };
-
 
   const downloadCSV = () => {
     const csvString = arrayToCSV(csvData);
@@ -115,7 +144,6 @@ const Category = () => {
     document.body.removeChild(a);
   };
 
-  
   const handleAddCategoryClick = () => {
     setIsModalVisible(true);
   };
@@ -125,25 +153,20 @@ const Category = () => {
     form.resetFields();
   };
 
-
- 
-
   const handlePrint = () => {
     setPrintData(data);
     setIsPrintModalVisible(true);
   };
 
-
   const handlePrintModalCancel = () => {
     setIsPrintModalVisible(false);
   };
-
 
   const printTable = () => {
     const printWindow = window.open("", "_blank");
     printWindow.document.open();
     printWindow.document.write("<html><head><title>Print</title>");
-  
+
     // Add custom CSS styles here
     printWindow.document.write(`
       <style>
@@ -156,13 +179,14 @@ const Category = () => {
         }
       </style>
     `);
-  
+
     printWindow.document.write("</head><body>");
-    printWindow.document.write('<h1 style="text-align: center;">Printed Table</h1>');
+    printWindow.document.write(
+      '<h1 style="text-align: center;">Printed Table</h1>'
+    );
     printWindow.document.write('<table border="1" style="margin: 0 auto;">');
     printWindow.document.write("<tr>");
-  
-   
+
     columns
       .filter((column) => column.key !== "action")
       .forEach((column) => {
@@ -171,7 +195,7 @@ const Category = () => {
     printWindow.document.write("</tr>");
     printData.forEach((record) => {
       printWindow.document.write("<tr>");
-     
+
       columns
         .filter((column) => column.key !== "action")
         .forEach((column) => {
@@ -179,7 +203,7 @@ const Category = () => {
         });
       printWindow.document.write("</tr>");
     });
-  
+
     printWindow.document.write("</table>");
     printWindow.document.write("</body></html>");
     printWindow.document.close();
@@ -188,7 +212,7 @@ const Category = () => {
   };
   return (
     <div>
-     {successMsg && (
+      {successMsg && (
         <div style={{ color: "green" }}>Assets category added successfully</div>
       )}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -202,7 +226,12 @@ const Category = () => {
           <Breadcrumb.Item>Category</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      <Button type="primary" icon={<PlusOutlined />} size={size} onClick={handleAddCategoryClick}>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        size={size}
+        onClick={handleAddCategoryClick}
+      >
         Add Category
       </Button>
       <div style={{ marginTop: "30px" }}>
@@ -211,22 +240,30 @@ const Category = () => {
             <Button type="primary" size={size} className="mobile-button">
               Copy
             </Button>
-            <Button type="primary" size={size} className="mobile-button" onClick={downloadCSV}>
+            <Button
+              type="primary"
+              size={size}
+              className="mobile-button"
+              onClick={downloadCSV}
+            >
               CSV
             </Button>
-            <Button type="primary" size={size} className="mobile-button" onClick={handlePrint}>
+            <Button
+              type="primary"
+              size={size}
+              className="mobile-button"
+              onClick={handlePrint}
+            >
               Print
             </Button>
           </div>
 
-       
           <div className="mobile-search">
             <Input.Search placeholder="Search..." />
           </div>
         </div>
 
-
-        <Table columns={columns} dataSource={data} />
+        <Table columns={columns} dataSource={data} loading={loading} />
       </div>
       <Modal
         title="Add Category"
@@ -248,7 +285,11 @@ const Category = () => {
             ]}
             style={{ marginBottom: "12px" }}
           >
-            <Input  placeholder="Enter category name" value={categoryName} onChange={(e)=>setCategoryName(e.target.value)} />
+            <Input
+              placeholder="Enter category name"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+            />
           </Form.Item>
           {/* <Form.Item
             name="status"

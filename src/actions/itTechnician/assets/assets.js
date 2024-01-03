@@ -5,6 +5,7 @@ export const addAssetsTechnician = (assets) => async (dispatch) => {
     try {
         const { data } = await api.addAssetsTechnician(assets);
         dispatch({ type: ADD_ASSETS_TECHNICIAN, payload: data });
+        return data;
     } catch (error) {
         console.log(error);
     }

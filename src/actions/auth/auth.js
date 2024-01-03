@@ -16,7 +16,10 @@ export const signin = (formData, history) => async (dispatch) => {
       } else {
         history('/');
       }
+      console.log(data)
+      return data;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };

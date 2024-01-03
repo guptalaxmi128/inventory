@@ -21,8 +21,8 @@ const columns = [
     },
     {
       title: "Assets Category",
-      dataIndex: "assetsCategory",
-      key: "assetsCategory",
+      dataIndex: "assetCategory",
+      key: "assetCategory",
     },
     {
         title: "Quantity",
@@ -45,7 +45,7 @@ const columns = [
 
 const Assets = () => {
   const dispatch=useDispatch();
-  const assets=useSelector((state)=>state.assets.assets || [])
+  const assets=useSelector((state)=>state.assets.assets)
   console.log(assets)
   const [data,setData]=useState([])
   const [size, setSize] = useState("large");
@@ -54,6 +54,7 @@ const Assets = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [printData, setPrintData] = useState([]); 
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading,setLoading]=useState(false);
   const [form] = Form.useForm();
 
   const handleSave = async () => {
@@ -62,7 +63,7 @@ const Assets = () => {
       const data = {
       categoryName: assetsCategory
       };
-    //   await dispatch(addAssetsCategory(data));
+      // await dispatch(addAssetsCategory(data));
      
       setSuccessMsg(true);
       message.success("Assets category successfully");
@@ -77,13 +78,33 @@ const Assets = () => {
   };
 
   useEffect(() => {
-  dispatch(getAdminAssets())
-  }, [dispatch])
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+       const result= await dispatch(getAdminAssets());
+       setData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+
+
+  
+  // useEffect(() => {
+  //   if(assets)
+  //  setData(assets.data)
+  // }, [assets]);
 
 
   const csvData = [
     ["Item Name","Assets Category","Quantity"], 
-    ...data.map(item => [item.itemName,item.assetsCategory.item.quantity]), 
+    ...data?.map(item => [item.itemName,item.assetCategory,item.quantity]), 
   ];
 
 
@@ -189,9 +210,9 @@ const Assets = () => {
           <Breadcrumb.Item>Assets</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      <Button type="primary" icon={<PlusOutlined />} size={size} onClick={handleAddCategoryClick}>
+      {/* <Button type="primary" icon={<PlusOutlined />} size={size} onClick={handleAddCategoryClick}>
         Add Assets
-      </Button>
+      </Button> */}
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
@@ -213,7 +234,7 @@ const Assets = () => {
         </div>
 
 
-        <Table columns={columns} dataSource={data} />
+        <Table columns={columns} dataSource={data} loading={loading} />
       </div>
       <Modal
         title="Add Assets"

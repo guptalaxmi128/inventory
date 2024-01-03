@@ -6,6 +6,7 @@ export const addMyTicket = (ticket) => async (dispatch) => {
     try {
         const { data } = await api.addMyTicket(ticket);
         dispatch({ type: ADD_MY_TICKET, payload: data });
+        return data;
     } catch (error) {
         console.log(error);
     }

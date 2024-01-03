@@ -165,7 +165,7 @@ const AdminLayout = () => {
               textAlign: "center",
             }}
           >
-            Inventory Management ©2023 Created by Admin
+            Inventory Management ©2023
           </Footer>
         </Layout>
       </Layout>

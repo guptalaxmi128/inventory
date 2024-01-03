@@ -155,7 +155,7 @@ const EmployeeLayout = () => {
             textAlign: "center",
           }}
         >
-          Inventory Management ©2023 Created by Tech Astute
+          Inventory Management ©2023 
         </Footer>
       </Layout>
     </Layout>

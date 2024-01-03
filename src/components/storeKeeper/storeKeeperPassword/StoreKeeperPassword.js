@@ -28,15 +28,19 @@ const StoreKeeperPassword = () => {
         currentPassword: password,
         newPassword,
       };
-      dispatch(changePasswordStoreKeeper(data));
+    const res=  await dispatch(changePasswordStoreKeeper(data));
+    if(res.success){
+      message.success(res.message);
       setSuccessMsg(true);
-      message.success("Password change successfully");
       form.resetFields();
       setTimeout(() => {
         setSuccessMsg(false);
       }, 2000);
+    }
+    
     } catch (error) {
       console.log(error);
+      message.error(error.response.data.message)
     }
   };
 

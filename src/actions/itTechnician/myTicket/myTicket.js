@@ -15,6 +15,7 @@ export const updateTicket = (formData) => async (dispatch) => {
     try {
       const response = await api.updateTicket(formData);
       dispatch({ type: UPDATE_TICKET, payload: response.data });
+      return response.data;
     } catch (error) {
       console.error(error);
     }

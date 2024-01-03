@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Form, Input, Button, Checkbox } from "antd";
+import { Card, Form, Input, Button, Checkbox ,message} from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { signin } from "../../actions/auth/auth";
@@ -19,10 +19,24 @@ const Login = () => {
     return Promise.resolve();
   };
 
-  const onFinish = (values) => {
-    console.log("Received values:", values);
-    dispatch(signin({ email, password }, navigate));
+  const onFinish = async (values) => {
+    try {
+      console.log("Received values:", values);
+      const res = await dispatch(signin({ email, password }, navigate));
+      
+      if (res.success) {
+        message.success(res.message);
+      } else {
+        message.error(res.message);
+      }
+    } catch (error) {
+      console.error("An error occurred during sign-in:", error);
+      message.error(error.response.data.message);
+    }
   };
+  
+
+  
 
   return (
     <div
@@ -67,9 +81,9 @@ const Login = () => {
           </Form.Item>
 
           <Form.Item>
-            <Form.Item name="remember" valuePropName="checked" noStyle>
+            {/* <Form.Item name="remember" valuePropName="checked" noStyle>
               <Checkbox>Remember me</Checkbox>
-            </Form.Item>
+            </Form.Item> */}
 
             <a href="#">Forgot password</a>
           </Form.Item>

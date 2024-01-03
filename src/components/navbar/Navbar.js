@@ -242,7 +242,7 @@ const Navbar = () => {
             textAlign: "center",
           }}
         >
-          Inventory Management ©2023 by Store Keeper
+          Inventory Management ©2023 
         </Footer>
       </Layout>
     </Layout>

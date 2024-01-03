@@ -27,21 +27,23 @@ const EmployeePassword = () => {
         currentPassword: password,
         newPassword,
       };
-      dispatch(changePasswordEmployee(data));
-      setSuccessMsg(true);
-      message.success("Password change successfully");
-      form.resetFields();
-      setTimeout(() => {
-        setSuccessMsg(false);
-      }, 2000);
+      const res = await dispatch(changePasswordEmployee(data));
+      if (res.success) {
+        message.success(res.message);
+        setSuccessMsg(true);
+        form.resetFields();
+        setTimeout(() => {
+          setSuccessMsg(false);
+        }, 2000);
+      }
     } catch (error) {
       console.log(error);
+      message.error(error.response.data.message);
     }
   };
 
   return (
-    <div
-    >
+    <div>
       {successMsg && (
         <div style={{ color: "green" }}>Password change successfully</div>
       )}
@@ -105,7 +107,7 @@ const EmployeePassword = () => {
         </Row>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" >
+          <Button type="primary" htmlType="submit">
             Change Password
           </Button>
         </Form.Item>

@@ -155,7 +155,7 @@ const ITLayout = () => {
             textAlign: "center",
           }}
         >
-          Inventory Management ©2023 Created by IT Technician
+          Inventory Management ©2023
         </Footer>
       </Layout>
     </Layout>

@@ -63,3 +63,9 @@ export const changePasswordTechnician = (password) =>
   export const addAssetsCategoryStore = (categoryInfo) =>
   api.post(`api/storeKeeper/createAssetCategory`, categoryInfo);
   export const getAssetsCategoryStore = () => api.get(`api/storeKeeper/assetCategories`);
+  export const addAssets = (assetsInfo) =>
+  api.post(`api/storeKeeper/createAsset`, assetsInfo);
+  export const getAssets = () => api.get(`api/storeKeeper/assets`);
+  export const updateAssets = ({id,...data}) => {
+    return api.put(`api/storeKeeper/updateAssets/${id}`,data);
+  };

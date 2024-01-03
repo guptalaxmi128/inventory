@@ -60,16 +60,18 @@ const AddNew = () => {
         password,
       };
       // console.log(member);
-      await dispatch(addMember(member));
-      
-      setSuccessMsg(true);
-      message.success("User registered successfully");
-      form.resetFields();
-      setTimeout(() => {
-        setSuccessMsg(false);
-      }, 2000);
+      const res = await dispatch(addMember(member));
+      if (res.success) {
+        message.success(res.message);
+        setSuccessMsg(true)
+        form.resetFields();
+        setTimeout(() => {
+          setSuccessMsg(false);
+        }, 2000);
+      }
     } catch (error) {
       console.log(error);
+      message.error(error.response.data.message);
     }
   };
 
@@ -198,6 +200,7 @@ const AddNew = () => {
                 <Option value="EMPLOYEE">Employee</Option>
                 <Option value="STORE KEEPER">Store Keeper</Option>
                 <Option value="IT TECHNICIAN">IT Technician</Option>
+                <Option value="INSTRUCTOR">Instructor</Option>
               </Select>
             </Form.Item>
           </Col>

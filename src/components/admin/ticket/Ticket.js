@@ -1,13 +1,9 @@
-import React, { useState,useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Input, Modal,Tag} from "antd";
-import {
-  EditOutlined,
-  HomeOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { useSelector,useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { Breadcrumb, Button, Space, Table, Input, Modal, Tag } from "antd";
+import { EditOutlined, HomeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useSelector, useDispatch } from "react-redux";
 import "../employees/Employees.css";
-import { getAdminTicket} from "../../../actions/admin/ticket/ticket";
+import { getAdminTicket } from "../../../actions/admin/ticket/ticket";
 
 const columns = [
   {
@@ -16,9 +12,10 @@ const columns = [
     key: "avatar",
     render: (attachments) => (
       <div>
-        {attachments.map((attachment, index) => (
-          <div key={index}>{attachment.attachment_OriginalName}</div>
-        ))}
+        {Array.isArray(attachments) &&
+          attachments.map((attachment, index) => (
+            <div key={index}>{attachment.attachment_OriginalName}</div>
+          ))}
       </div>
     ),
   },
@@ -44,17 +41,16 @@ const columns = [
     key: "details",
   },
   {
-    title: "Status", 
-    dataIndex: "status", 
-    key: "status", 
-    render: (status) => ( 
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    render: (status) => (
       <Tag color={status === "CREATED" ? "green" : "volcano"}>
         {status.toUpperCase()}
       </Tag>
     ),
   },
 ];
-
 
 const columnsWithAction = [
   ...columns,
@@ -71,27 +67,47 @@ const columnsWithAction = [
 ];
 
 const Ticket = () => {
-  const dispatch=useDispatch();
-  const myticket=useSelector((state)=>state.adminTicket.ticket);
-  const [data,setData]=useState(myticket?.data || []);
+  const dispatch = useDispatch();
+  const myticket = useSelector((state) => state.adminTicket.ticket);
+  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("large");
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(getAdminTicket());
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAdminTicket());
+        setData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
+
+  // useEffect(() => {
+  //   if(myticket && myticket.data)
+  //  setData(myticket.data)
+  // }, [myticket]);
+
+  // console.log("adminTicket",myticket)
 
   const csvData = [
     ["Ticket Number", "Ticket Category", "Subject", "Detail", "Status"],
-    ...data.map((item) => [
+    ...data?.map((item) => [
       item.ticketNumber,
       item.ticketCategory,
       item.subject,
       item.details,
-      item.status
+      item.status,
     ]),
   ];
 
@@ -118,7 +134,7 @@ const Ticket = () => {
     setPrintData(data);
     setIsPrintModalVisible(true);
   };
-//   console.log(printData);
+  //   console.log(printData);
 
   const handlePrintModalCancel = () => {
     setIsPrintModalVisible(false);
@@ -161,7 +177,6 @@ const Ticket = () => {
       columns
         .filter((column) => column.key !== "action" && column.key !== "avatar")
         .forEach((column) => {
-          
           printWindow.document.write(`<td>${record[column.dataIndex]}</td>`);
         });
       printWindow.document.write("</tr>");
@@ -178,10 +193,12 @@ const Ticket = () => {
     if (searchQuery.trim() === "") {
       setFilteredData(null);
     } else {
-      const filtered = data.filter((item) => {
+      const filtered = data?.filter((item) => {
         return (
           item.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.ticketCategory.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.ticketCategory
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           item.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.status.toLowerCase().includes(searchQuery.toLowerCase())
@@ -208,7 +225,7 @@ const Ticket = () => {
           <Breadcrumb.Item>Ticket</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-     
+
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
@@ -234,14 +251,20 @@ const Ticket = () => {
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." 
-                 value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} 
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
+
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <Table columns={columnsWithAction} dataSource={filteredData ||data} />
+          <Table
+            columns={columnsWithAction}
+            dataSource={filteredData || data}
+            loading={loading}
+          />
         </div>
       </div>
 

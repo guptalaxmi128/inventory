@@ -1,39 +1,42 @@
-import React, { useState ,useEffect} from "react";
-import { Form, Input, Breadcrumb, Row, Col } from "antd";
-import { useDispatch,useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { Form, Input, Breadcrumb, Row, Col, Spin } from "antd";
+import { useDispatch, useSelector } from "react-redux";
 import { HomeOutlined } from "@ant-design/icons";
 import { getAdminProfile } from "../../../actions/admin/profile/profile";
 
-
-
-
 const Profile = () => {
   const dispatch = useDispatch();
-  const [name,setName]=useState('');
-  const [mobileNumber,setMobileNumber]=useState('');
-  const [post,setPost]=useState('');
-//   const [department,setDepartment]=useState('');
-  const [email,setEmail]=useState('');
-//   const [attendanceId,setAttendanceId]=useState('');
+  const [name, setName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [post, setPost] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const profile = useSelector((state) => state.adminProfile.admin);
+  //  console.log(profile)
 
- const profile=useSelector((state)=>state.adminProfile.admin);
-//  console.log(profile)
-
- useEffect(() => {
- 
-    if(profile){
-        setName(profile.data?.name);
-        setMobileNumber(profile.data?.mobileNumber);
-        setPost(profile.data?.post);
-        // setDepartment(profile.data?.department);
-        setEmail(profile.data?.email);
-        // setAttendanceId(profile.data?.attendanceId)
+  useEffect(() => {
+    if (profile && profile.data) {
+      setName(profile.data.name);
+      setMobileNumber(profile.data.mobileNumber);
+      setPost(profile.data.post);
+      setEmail(profile.data.email);
     }
- }, [profile])
+  }, [profile]);
 
- useEffect(() => {
-  dispatch(getAdminProfile());
- }, [dispatch])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await dispatch(getAdminProfile());
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
 
   return (
     <div>
@@ -48,33 +51,44 @@ const Profile = () => {
           <Breadcrumb.Item>Profile</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      <Form layout="vertical" style={{ maxWidth: "100%", margin: "0 auto" }}>
-        <Row gutter={16}>
-          <Col xs={24} sm={12} style={{ width: "200px" }}>
-            <Form.Item label="Name">
-              <Input value={name} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} style={{ width: "200px" }}>
-            <Form.Item label="Email">
-              <Input value={email} />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} sm={12} style={{ width: "200px" }}>
-            <Form.Item label="Mobile Number">
-              <Input value={mobileNumber} />
-            </Form.Item>
-          </Col>
-          
-          <Col xs={24} sm={12} style={{ width: "200px" }}>
-            <Form.Item label="Post">
-              <Input value={post} />
-            </Form.Item>
-          </Col>
-        </Row>
-        {/* <Row gutter={16}>
+      {loading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Spin size="small" />
+        </div>
+      ) : (
+        <Form layout="vertical" style={{ maxWidth: "100%", margin: "0 auto" }}>
+          <Row gutter={16}>
+            <Col xs={24} sm={12} style={{ width: "200px" }}>
+              <Form.Item label="Name">
+                <Input value={name} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} style={{ width: "200px" }}>
+              <Form.Item label="Email">
+                <Input value={email} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col xs={24} sm={12} style={{ width: "200px" }}>
+              <Form.Item label="Mobile Number">
+                <Input value={mobileNumber} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} style={{ width: "200px" }}>
+              <Form.Item label="Post">
+                <Input value={post} />
+              </Form.Item>
+            </Col>
+          </Row>
+          {/* <Row gutter={16}>
           <Col xs={24} sm={12} style={{ width: "200px" }}>
             <Form.Item label="Department">
               <Input value={department} />
@@ -87,7 +101,8 @@ const Profile = () => {
           </Col>
          
         </Row> */}
-      </Form>
+        </Form>
+      )}
     </div>
   );
 };

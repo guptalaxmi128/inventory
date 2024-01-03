@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Input, Modal, Avatar ,Tag} from "antd";
+import { Breadcrumb, Button, Space, Table, Input, Modal,Tag} from "antd";
 import {
   EditOutlined,
   HomeOutlined,
@@ -18,9 +18,10 @@ const columns = [
     key: "avatar",
     render: (attachments) => (
       <div>
-        {attachments.map((attachment, index) => (
-          <div key={index}>{attachment.attachment_OriginalName}</div>
-        ))}
+        {Array.isArray(attachments) &&
+          attachments.map((attachment, index) => (
+            <div key={index}>{attachment.attachment_OriginalName}</div>
+          ))}
       </div>
     ),
   },
@@ -75,20 +76,37 @@ const columnsWithAction = [
 const MyTicket = () => {
   const dispatch=useDispatch();
   const myticket=useSelector((state)=>state.myTicket.myticket);
-  const [data,setData]=useState(myticket?.data || []);
+  const [data,setData]=useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("large");
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
-    dispatch(getMyTicket());
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await dispatch(getMyTicket());
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
+
+  useEffect(() => {
+    if(myticket)
+   setData(myticket.data)
+  }, [myticket]);
 
   const csvData = [
     ["Ticket Number", "Ticket Category", "Subject", "Detail", "Status"],
-    ...data.map((item) => [
+    ...data?.map((item) => [
       item.ticketNumber,
       item.ticketCategory,
       item.subject,
@@ -120,7 +138,7 @@ const MyTicket = () => {
     setPrintData(data);
     setIsPrintModalVisible(true);
   };
-  console.log(printData);
+  // console.log(printData);
 
   const handlePrintModalCancel = () => {
     setIsPrintModalVisible(false);
@@ -180,7 +198,7 @@ const MyTicket = () => {
     if (searchQuery.trim() === "") {
       setFilteredData(null);
     } else {
-      const filtered = data.filter((item) => {
+      const filtered = data?.filter((item) => {
         return (
           item.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.ticketCategory.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -246,8 +264,9 @@ const MyTicket = () => {
             />
           </div>
         </div>
+         
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <Table columns={columnsWithAction} dataSource={filteredData ||data} />
+          <Table columns={columnsWithAction} dataSource={filteredData ||data} loading={loading} />
         </div>
       </div>
 
