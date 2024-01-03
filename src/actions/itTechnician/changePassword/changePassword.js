@@ -9,5 +9,6 @@ export const changePasswordTechnician = (password) => async (dispatch) => {
         return data;
     } catch (error) {
         console.log(error);
+        throw error;
     }
 };

@@ -88,7 +88,8 @@ const MyTicket = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        await dispatch(getMyTicket());
+        const res= await dispatch(getMyTicket());
+        setData(res.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -99,10 +100,10 @@ const MyTicket = () => {
     fetchData();
   }, [dispatch]);
 
-  useEffect(() => {
-    if(myticket)
-   setData(myticket.data)
-  }, [myticket]);
+  // useEffect(() => {
+  //   if(myticket)
+  //  setData(myticket.data)
+  // }, [myticket]);
 
   const csvData = [
     ["Ticket Number", "Ticket Category", "Subject", "Detail", "Status"],

@@ -9,6 +9,7 @@ export const addMyTicket = (ticket) => async (dispatch) => {
         return data;
     } catch (error) {
         console.log(error);
+        throw error;
     }
 };
 
@@ -18,7 +19,9 @@ export const getMyTicket = () => async (dispatch) => {
         const { data } = await api.getMyTicket();
         console.log(data)
         dispatch({ type: GET_MY_TICKET, payload: data });
+        return data;
     } catch (error) {
         console.log(error);
+        throw error;
     }
 };

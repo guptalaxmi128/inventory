@@ -52,18 +52,33 @@ const columnsWithAction = [
 const Employees = () => {
   const dispatch=useDispatch();
   const employee=useSelector((state)=>state.technicianEmployee.technicianemployee);
-  const [data,setData]=useState(employee?.data || []);
+  const [data,setData]=useState([]);
   const [size, setSize] = useState("large");
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading,setLoading]=useState(true);
 
-  useEffect(() => {
-    dispatch(getTechnicianEmployee());
-    }, [dispatch])
+
+
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+         const res= await dispatch(getTechnicianEmployee());
+         setData(res.data)
+        } catch (error) {
+          console.error("Error fetching tickets:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchData();
+    }, [dispatch]);
 
   const csvData = [
     ["Name", "Department", "Post", "Attendance Id"],
-    ...data.map((item) => [
+    ...data?.map((item) => [
       item.name,
       item.department,
       item.post,
@@ -196,7 +211,7 @@ const Employees = () => {
           </div>
         </div>
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <Table columns={columnsWithAction} dataSource={data} />
+          <Table columns={columnsWithAction} dataSource={data} loading={loading} />
         </div>
       </div>
 

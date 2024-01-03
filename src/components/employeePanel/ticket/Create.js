@@ -63,27 +63,32 @@ const Create = () => {
   };
 
   const onFinish = async (values) => {
-    const formData = new FormData();
-    formData.append("subject", subject);
-    formData.append("details", details);
-    formData.append("ticketCategory", ticketCategory);
-    selectedFiles.forEach((file) => {
-      formData.append(`attachment`, file);
-    });
-    await dispatch(addMyTicket(formData));
-    setSuccessMsg(true);
-    message.success("Ticket added successfully");
+    try {
+      const formData = new FormData();
+      formData.append("subject", subject);
+      formData.append("details", details);
+      formData.append("ticketCategory", ticketCategory);
+      selectedFiles.forEach((file) => {
+        formData.append(`attachment`, file);
+      });
 
-    form.resetFields();
-    setSelectedFiles([]);
-    setTimeout(() => {
-      setSuccessMsg(false);
-    }, 2000);
+      const res = await dispatch(addMyTicket(formData));
+      if (res.success) {
+        message.success(res.message);
+        setSuccessMsg(true);
+        form.resetFields();
+        setSelectedFiles([]);
+        setTimeout(() => {
+          setSuccessMsg(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error adding ticket:", error);
+
+      message.error(error.response.data.message);
+    }
   };
 
- 
-
- 
   return (
     <div>
       {successMsg && (
@@ -206,10 +211,10 @@ const Create = () => {
             <Button type="primary" htmlType="submit">
               Save & Close
             </Button>
-            <Link to={"/employee/dashboard"} style={{textDecoration:'none'}}>
-            <Button type="default" htmlType="button">
-              Back
-            </Button>
+            <Link to={"/employee/dashboard"} style={{ textDecoration: "none" }}>
+              <Button type="default" htmlType="button">
+                Back
+              </Button>
             </Link>
           </Space>
         </Form.Item>

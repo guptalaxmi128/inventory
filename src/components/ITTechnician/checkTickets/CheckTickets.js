@@ -59,7 +59,7 @@ const CheckTickets = () => {
   const myticket = useSelector(
     (state) => state.technicianTicket.technicianticket
   );
-  const [data, setData] = useState(myticket?.data || []);
+  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("large");
@@ -73,6 +73,7 @@ const CheckTickets = () => {
   const [details, setDetails] = useState("");
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [id, setId] = useState("");
+  const [loading,setLoading]=useState(true);
 
   const ticketById = useSelector((state) => state.technicianTicket.ticket);
 
@@ -82,6 +83,7 @@ const CheckTickets = () => {
     }
   };
 
+  console.log(myticket)
   useEffect(() => {
     if (isAddModalVisible) {
       fetchSelectedItemData();
@@ -132,8 +134,22 @@ const CheckTickets = () => {
     setIsAddModalVisible(false);
   };
 
+
+
   useEffect(() => {
-    dispatch(getTechnicianTicket());
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+       const res= await dispatch(getTechnicianTicket());
+       setData(res.data)
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
 
   const columnsWithAction = [
@@ -152,7 +168,7 @@ const CheckTickets = () => {
   ];
   const csvData = [
     ["Ticket Number", "Name", "Ticket Category", "Status"],
-    ...data.map((item) => [
+    ...data?.map((item) => [
       item.ticketNumber,
       item.employee.name,
       item.ticketCategory,
@@ -246,7 +262,7 @@ const CheckTickets = () => {
     if (searchQuery.trim() === "") {
       setFilteredData(null);
     } else {
-      const filtered = data.filter((item) => {
+      const filtered = data?.filter((item) => {
         return (
           item.ticketCategory
             .toLowerCase()
@@ -320,6 +336,7 @@ const CheckTickets = () => {
           <Table
             columns={columnsWithAction}
             dataSource={filteredData || data}
+            loading={loading}
           />
         </div>
       </div>

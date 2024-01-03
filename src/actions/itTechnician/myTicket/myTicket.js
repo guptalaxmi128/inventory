@@ -3,11 +3,13 @@ import * as api from "../../../api";
 
 export const getTechnicianTicket  = () => async (dispatch) => {
     try {
-        const { data } = await api.getTechnicianTicket ();
+        const { data } = await api.getTechnicianTicket();
         console.log(data)
         dispatch({ type: GET_TECHNICIAN_TICKET, payload: data });
+        return data;
     } catch (error) {
         console.log(error);
+        throw error;
     }
 };
 
