@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Breadcrumb,
   Button,
@@ -11,12 +11,16 @@ import {
   DatePicker,
   theme,
   Table,
-  message
+  message,
 } from "antd";
-import { useDispatch} from 'react-redux';
+import { useDispatch } from "react-redux";
 import { HomeOutlined } from "@ant-design/icons";
-import { getAssetsCategoryStore } from "../../../../actions/storeKeeper/assetsCategory/assetsCategory";
+import {
+  addAssetsTechnician,
+  getAssetsTechnician,
+} from "../../../../actions/itTechnician/assets/assets";
 import "./AddAssets.css";
+import { getAssetsCategoryTechnician } from "../../../../actions/itTechnician/assetsCategory/assetsCategory";
 
 const { Option } = Select;
 
@@ -69,40 +73,19 @@ const columns = [
 
 const AddAssets = (props) => {
   const { attendanceId } = props;
-  const dispatch =useDispatch();
-  // console.log(attendanceId)
+  const dispatch = useDispatch();
+  console.log(attendanceId);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [assetsData,setAssetsData]=useState([]);
-  const [loading,setLoading]=useState(true);
-
+  const [assetsData, setAssetsData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
-  const { token } = theme.useToken();
-  const style = {
-    border: `1px solid ${token.colorPrimary}`,
-    borderRadius: "50%",
-  };
-  // const cellRender = React.useCallback((current, info) => {
-  //   if (info.type !== "date") {
-  //     return info.originNode;
-  //   }
-  //   if (typeof current === "number") {
-  //     return <div className="ant-picker-cell-inner">{current}</div>;
-  //   }
-  //   return (
-  //     <div
-  //       className="ant-picker-cell-inner"
-  //       style={current.date() === 1 ? style : {}}
-  //     >
-  //       {current.date()}
-  //     </div>
-  //   );
-  // }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const result = await dispatch(getAssetsCategoryStore());
+        const result = await dispatch(getAssetsTechnician());
         setAssetsData(result.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
@@ -114,6 +97,43 @@ const AddAssets = (props) => {
     fetchData();
   }, [dispatch]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAssetsCategoryTechnician());
+        setCategoryData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
+  const onFinish = async (values) => {
+    console.log("Received value", values);
+    try {
+      const data = {
+        date: selectedDate,
+        employeeAttendanceId: attendanceId,
+        ...values,
+      };
+      console.log(data);
+      const res = await dispatch(addAssetsTechnician(data));
+      if (res.success) {
+        message.success(res.message);
+        form.resetFields();
+      }
+    } catch (error) {
+      console.log(error);
+      message.error(error.response.data.message);
+    }
+  };
+
+  console.log(assetsData);
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -131,10 +151,7 @@ const AddAssets = (props) => {
         form={form}
         layout="vertical"
         style={{ maxWidth: "100%", margin: "0 auto" }}
-        onFinish={(values) => {
-          // Handle form submission here
-          console.log(values);
-        }}
+        onFinish={onFinish}
       >
         <Row gutter={16}>
           <Col xs={24} sm={12}>
@@ -171,41 +188,46 @@ const AddAssets = (props) => {
 
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item label="Issue Date" style={{ width: "100%" }} name="date"
-            rules={[
+            <Form.Item
+              label="Issue Date"
+              style={{ width: "100%" }}
+              name="date"
+              rules={[
                 {
                   required: true,
                   message: "Please select date",
                 },
-              ]} >
-              {/* <DatePicker cellRender={cellRender} style={{ width: "100%" }} /> */}
+              ]}
+            >
               <DatePicker
-              style={{ width: "100%" }}
-              onChange={(date, dateString) => {
-                setSelectedDate(dateString);
-              }}
-              format="YYYY-MM-DD"
-            />
+                style={{ width: "100%" }}
+                onChange={(date, dateString) => {
+                  setSelectedDate(dateString);
+                }}
+                format="YYYY-MM-DD"
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-          <Form.Item
-            label="Assets Category"
-            name="assetCategory"
-            rules={[{ required: true, message: "Please select assets category!" }]}
-            style={{ marginBottom: "12px" }}
-          >
-            <Select placeholder="Assets Category" >
-              {assetsData?.map((data, index) => (
-                <Option key={index} value={data.categoryName}>
-                  {data.categoryName}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+            <Form.Item
+              label="Assets Category"
+              name="assetCategory"
+              rules={[
+                { required: true, message: "Please select assets category!" },
+              ]}
+              style={{ marginBottom: "12px" }}
+            >
+              <Select placeholder="Assets Category">
+                {categoryData?.map((data, index) => (
+                  <Option key={index} value={data.categoryName}>
+                    {data.categoryName}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
           </Col>
-          </Row>
-          <Row gutter={16}>
+        </Row>
+        <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               name="status"
@@ -219,8 +241,8 @@ const AddAssets = (props) => {
               style={{ marginBottom: "12px" }}
             >
               <Select placeholder="Select status">
-                <Option value="working">Working</Option>
-                <Option value="notWorking">Not Working</Option>
+                <Option value="WORKING">Working</Option>
+                <Option value="NON WORKING">Not Working</Option>
               </Select>
             </Form.Item>
           </Col>
@@ -237,15 +259,18 @@ const AddAssets = (props) => {
           </Space>
         </Form.Item>
       </Form>
-      <div style={{ marginTop: "20px" }}>
-        <h3>IT Assets</h3>
-        <Table
-          dataSource={dataSource}
-          columns={columns}
-          pagination={false}
-          className="center-table-data"
-        />
-      </div>
+      {assetsData?.length > 0 ? (
+        <div style={{ marginTop: "20px" }}>
+          <h3>IT Assets</h3>
+          <Table
+            dataSource={assetsData}
+            columns={columns}
+            pagination={false}
+            loading={loading}
+            className="center-table-data"
+          />
+        </div>
+      ) : null}
     </div>
   );
 };

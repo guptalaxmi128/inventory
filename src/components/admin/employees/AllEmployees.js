@@ -9,60 +9,10 @@ import {
 import QRCode from "react-qr-code";
 import { useSelector, useDispatch } from "react-redux";
 import "./Employees.css";
-import { getMember } from "../../../actions/addMember/addMember";
+import { getMember} from "../../../actions/addMember/addMember";
+import { getAdminAssetsById} from "../../../actions/admin/assets/assets";
 
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: " Email",
-    dataIndex: "email",
-    key: "email",
-  },
 
-  {
-    title: "Mobile Number",
-    dataIndex: "mobileNumber",
-    key: "mobileNumber",
-  },
-  {
-    title: "Department",
-    dataIndex: "department",
-    key: "department",
-  },
-  {
-    title: "Post",
-    dataIndex: "post",
-    key: "post",
-  },
-  {
-    title: "Attendance Id",
-    dataIndex: "attendanceId",
-    key: "attendanceId",
-  },
-  {
-    title: "QR Code",
-    key: "qrcode",
-    render: (_, record) => <QRCode size={50} value={record.qrImage} />,
-  },
-];
-
-const columnsWithAction = [
-  ...columns,
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
-];
 
 const AllEmployees = () => {
   const dispatch = useDispatch();
@@ -77,6 +27,72 @@ const AllEmployees = () => {
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [employeeData,setEmployeeData]=useState([]);
+  const [id,setId]=useState('');
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      onCell: (record) => {
+        return {
+          onClick: () => handleNameClick(record.id), 
+        };
+      },
+    },
+    {
+      title: " Email",
+      dataIndex: "email",
+      key: "email",
+    },
+  
+    {
+      title: "Mobile Number",
+      dataIndex: "mobileNumber",
+      key: "mobileNumber",
+    },
+    {
+      title: "Department",
+      dataIndex: "department",
+      key: "department",
+    },
+    {
+      title: "Post",
+      dataIndex: "post",
+      key: "post",
+    },
+    {
+      title: "Attendance Id",
+      dataIndex: "attendanceId",
+      key: "attendanceId",
+    },
+    {
+      title: "QR Code",
+      key: "qrcode",
+      render: (_, record) => <QRCode size={50} value={record.qrImage} />,
+    },
+  ];
+  
+  const columnsWithAction = [
+    ...columns,
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined style={{ fontSize: "16px" }} />
+          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+        </Space>
+      ),
+    },
+  ];
+
+  const handleNameClick = (userId) => {
+    setId(userId)
+    console.log("Clicked on Name with id:", userId);
+    
+  };
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,6 +109,24 @@ const AllEmployees = () => {
 
     fetchData();
   }, [dispatch]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAdminAssetsById(id));
+        setEmployeeData(result.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dispatch,id]);
+
+  console.log(employeeData)
 
   // useEffect(() => {
   //   if(member && member.data)

@@ -3,8 +3,7 @@ import {
   DashboardOutlined,
   TeamOutlined,
   LogoutOutlined,
-  PlusCircleOutlined,
-  BarsOutlined,
+ SafetyCertificateOutlined,
   KeyOutlined,
   UserOutlined
 } from "@ant-design/icons";
@@ -29,49 +28,42 @@ const AssetsLayout = () => {
       key: "1",
       icon: <DashboardOutlined />,
       label: "Dashboard",
-      link: "/employee/dashboard",
+      link: "/ITTechnician/dashboard",
     },
 
     {
       key: "2",
       icon: <TeamOutlined />,
-      label: "Ticket",
-      subMenu: [
-        {
-          key: "2-1",
-          label: "Create",
-          link: "/employee/create-ticket",
-          icon: <PlusCircleOutlined />,
-        },
-        {
-          key: "2-2",
-          label: "My Ticket",
-          link: "/employee/my-ticket",
-          icon: <BarsOutlined />,
-        },
-      ],
+      label: "Employees",
+      link: "/ITTechnician/employees",
     },
     {
       key: "3",
+      icon: <SafetyCertificateOutlined />,
+      label: "Check Tickets",
+      link: "/ITTechnician/check-tickets",
+    },
+    {
+      key: "4",
       icon: <UserOutlined />,
       label: "Profile",
       subMenu: [
         {
-          key: "3-1",
+          key: "4-1",
           label: "Change Password",
-          link: "/employee/employee-change-password",
+          link: "/ITTechnician/change-password",
           icon: <KeyOutlined />,
         },
         {
-          key: "3-2",
+          key: "4-2",
           label: "Profile",
-          link: "/employee/employee-profile",
+          link: "/ITTechnician/profile",
           icon: <UserOutlined />,
         },
       ],
     },
 
-    { key: "4", icon: <LogoutOutlined />, label: "Logout", link:"/" },
+    { key: "5", icon: <LogoutOutlined />, label: "Logout",link:"/" },
   ];
 
   const [openKeys, setOpenKeys] = useState(["6"]);
@@ -90,7 +82,7 @@ const AssetsLayout = () => {
       >
         <div className="sider-header">
           <div className="demo-logo-vertical" />
-          <h3 style={{ color: "white", textAlign: "center" }}>Employee</h3>
+          <h3 style={{ color: "white", textAlign: "center" }}>IT Technician</h3>
         </div>
         <Menu
           theme="dark"

@@ -56,7 +56,7 @@ export const changePasswordTechnician = (password) =>
   export const addAssetsTechnician = (assets) =>
   api.post(`api/iTTechnician/assignAsset`, assets);
   export const getAssetsTechnician = () => api.get(`api/iTTechnician/assets`);
-
+  export const getAssetsCategoryTechnician = () => api.get(`api/iTTechnician/assetCategories`);
 
 
   export const changePasswordStoreKeeper = (password) =>
