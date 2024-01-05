@@ -1,4 +1,4 @@
-import { ADD_ASSETS_STORE, GET_ASSETS_STORE,UPDATE_ASSETS } from "../../../constants/actionTypes";
+import { ADD_ASSETS_STORE, GET_ASSETS_STORE,UPDATE_ASSETS,GET_ASSETS_BY_ID } from "../../../constants/actionTypes";
 import * as api from "../../../api";
 
 
@@ -36,3 +36,14 @@ export const updateAssets = (assetsInfo) => async (dispatch) => {
       throw error;
     }
   };
+
+  export const getAssetsById = (id) => async (dispatch) => {
+    try {
+        const { data } = await api.getAssetsById(id);
+        dispatch({ type: GET_ASSETS_BY_ID, payload: data });
+        return data;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+  }

@@ -18,6 +18,12 @@ export const assetsCategoryReducer = (state = initialState, action) => {
                 ...state,
                 category: action.payload,
             };
+            case actionTypes.DELETE_ASSETS_CATEGORY:
+                const assetCategoriesIdToDelete = action.payload;
+                return {
+                  ...state,
+                  category: state.category.data.filter((category) => category.id !== assetCategoriesIdToDelete),
+                };
         default:
             return state;
     }

@@ -30,6 +30,8 @@ export const addAssetsCategory = (categoryInfo) =>
   export const getAssetsCategory = () => api.get(`api/admin/assetCategories`);
   export const getAdminAssets = () => api.get(`api/admin/assets`);
 export const getAdminAssetsById = (id) => api.get(`api/admin/assetToEmployee/${id}`);
+export const deleteAssetsCategory = (id) =>
+  api.delete(`api/admin/deleteAssetCategory/${id}`);
 
 
 export const addMyTicket = (ticketInfo) => {
@@ -67,5 +69,6 @@ export const changePasswordTechnician = (password) =>
   api.post(`api/storeKeeper/createAsset`, assetsInfo);
   export const getAssets = () => api.get(`api/storeKeeper/assets`);
   export const updateAssets = ({id,...data}) => {
-    return api.put(`api/storeKeeper/updateAssets/${id}`,data);
+    return api.put(`api/storeKeeper/updateAsset/${id}`,data);
   };
+  export const getAssetsById = (id) => api.get(`api/storeKeeper/assets/${id}`);

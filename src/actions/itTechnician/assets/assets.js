@@ -8,6 +8,7 @@ export const addAssetsTechnician = (assets) => async (dispatch) => {
         return data;
     } catch (error) {
         console.log(error);
+        throw error;
     }
 };
 

@@ -6,7 +6,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import QRCode from "react-qr-code";
 import { useSelector, useDispatch } from "react-redux";
 import "./Employees.css";
 import { getMember } from "../../../actions/addMember/addMember";
@@ -42,6 +42,11 @@ const columns = [
     title: "Attendance Id",
     dataIndex: "attendanceId",
     key: "attendanceId",
+  },
+  {
+    title: "QR Code",
+    key: "qrcode",
+    render: (_, record) => <QRCode size={50} value={record.qrImage} />,
   },
 ];
 

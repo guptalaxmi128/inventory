@@ -99,6 +99,7 @@ const MyTicket = () => {
 
     fetchData();
   }, [dispatch]);
+  console.log(data)
 
   // useEffect(() => {
   //   if(myticket)

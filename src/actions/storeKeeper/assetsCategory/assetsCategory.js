@@ -24,3 +24,4 @@ export const getAssetsCategoryStore = () => async (dispatch) => {
         throw error;
     }
 };
+

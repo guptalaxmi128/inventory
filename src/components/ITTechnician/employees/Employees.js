@@ -6,48 +6,7 @@ import { Link } from "react-router-dom";
 import "./Employees.css";
 import { getTechnicianEmployee } from "../../../actions/itTechnician/employee/employee";
 
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: "Department",
-    dataIndex: "department",
-    key: "department",
-  },
-  {
-    title: "Post",
-    dataIndex: "post",
-    key: "post",
-  },
-  {
-    title: "Attendance Id",
-    dataIndex: "attendanceId",
-    key: "attendanceId",
-  },
 
- 
-];
-
-
-const columnsWithAction = [
-  ...columns,
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <Link to="/ITTechnician/add-assets" style={{ textDecoration: "none" }}>
-          <Button type="default">
-            <PlusOutlined style={{ fontSize: "16px" }} /> Add Assets
-          </Button>
-        </Link>
-      </Space>
-    ),
-  },
-];
 
 const Employees = () => {
   const dispatch=useDispatch();
@@ -58,6 +17,48 @@ const Employees = () => {
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading,setLoading]=useState(true);
 
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Department",
+      dataIndex: "department",
+      key: "department",
+    },
+    {
+      title: "Post",
+      dataIndex: "post",
+      key: "post",
+    },
+    {
+      title: "Attendance Id",
+      dataIndex: "attendanceId",
+      key: "attendanceId",
+    },
+  
+   
+  ];
+  
+  
+  const columnsWithAction = [
+    ...columns,
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <Link to= {`/ITTechnician/add-assets/${record.attendanceId}`} style={{ textDecoration: "none" }}>
+            <Button type="default">
+              <PlusOutlined style={{ fontSize: "16px" }} /> Add Assets
+            </Button>
+          </Link>
+        </Space>
+      ),
+    },
+  ];
 
 
     useEffect(() => {
@@ -75,6 +76,7 @@ const Employees = () => {
   
       fetchData();
     }, [dispatch]);
+    console.log(data)
 
   const csvData = [
     ["Name", "Department", "Post", "Attendance Id"],

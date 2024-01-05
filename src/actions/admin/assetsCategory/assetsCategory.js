@@ -1,4 +1,4 @@
-import { ADD_ASSETS_CATEGORY ,GET_ASSETS_CATEGORY} from "../../../constants/actionTypes";
+import { ADD_ASSETS_CATEGORY ,GET_ASSETS_CATEGORY,DELETE_ASSETS_CATEGORY} from "../../../constants/actionTypes";
 import * as api from "../../../api";
 
 
@@ -24,3 +24,14 @@ export const getAssetsCategory = () => async (dispatch) => {
         throw error;
     }
 };
+
+export const deleteAssetsCategory = (id) => async (dispatch) => {
+    try {
+      const response = await api.deleteAssetsCategory(id);
+      dispatch({ type: DELETE_ASSETS_CATEGORY, payload: id });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };

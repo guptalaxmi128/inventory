@@ -83,7 +83,7 @@ const CheckTickets = () => {
     }
   };
 
-  console.log(myticket)
+  // console.log(myticket)
   useEffect(() => {
     if (isAddModalVisible) {
       fetchSelectedItemData();
@@ -109,12 +109,14 @@ const CheckTickets = () => {
     formData.append("reply", reply);
     formData.append("status", status);
 
-    await dispatch(updateTicket(formData));
-    message.success("Ticket updated successfully");
-    setStatus("Select status");
-    setReply("");
-    setTicketCategory("Select ticket category");
-    setSubject("");
+    const res =  await dispatch(updateTicket(formData));
+    if(res.success){
+      message.success(res.message);
+      setStatus("Select status");
+      setReply("");
+      setTicketCategory("Select ticket category");
+      setSubject("");
+    }
   };
 
   const handleStatusChange = (value) => {
@@ -151,6 +153,7 @@ const CheckTickets = () => {
 
     fetchData();
   }, [dispatch]);
+  console.log(data)
 
   const columnsWithAction = [
     ...columns,

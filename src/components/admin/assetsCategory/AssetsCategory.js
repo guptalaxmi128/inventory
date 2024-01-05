@@ -19,32 +19,11 @@ import { useDispatch, useSelector } from "react-redux";
 import "./AssetsCategory.css";
 import {
   addAssetsCategory,
+  deleteAssetsCategory,
   getAssetsCategory,
 } from "../../../actions/admin/assetsCategory/assetsCategory";
 
-const columns = [
-  {
-    title: "Assets Category",
-    dataIndex: "categoryName",
-    key: "categoryName",
-  },
-  {
-    title: "Category number",
-    dataIndex: "categoryNumber",
-    key: "categoryNumber",
-  },
 
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
-];
 
 const AssetsCategory = () => {
   const dispatch = useDispatch();
@@ -59,6 +38,41 @@ const AssetsCategory = () => {
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
+
+  const columns = [
+    {
+      title: "Assets Category",
+      dataIndex: "categoryName",
+      key: "categoryName",
+    },
+    {
+      title: "Category number",
+      dataIndex: "categoryNumber",
+      key: "categoryNumber",
+    },
+  
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined style={{ fontSize: "16px" }} />
+          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} onClick={()=>handleDelete(record.id)} />
+        </Space>
+      ),
+    },
+  ];
+
+  const handleDelete = (id) => {
+    console.log(`assets category ${id} is clicked to delete`);
+    dispatch(deleteAssetsCategory(id)).then((res) => {
+      if (res.success) {
+        message.success(res.message);
+      } else {
+        message.error(res.message);
+      }
+    });
+  };
 
   const handleSave = async () => {
     try {
