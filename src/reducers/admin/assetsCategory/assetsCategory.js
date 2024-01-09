@@ -3,7 +3,8 @@ import * as actionTypes from '../../../constants/actionTypes';
 const initialState = {
     category: [],
     state: 'idle', 
-    error: null
+    error: null,
+    success:null
 };
 
 export const assetsCategoryReducer = (state = initialState, action) => {
@@ -18,6 +19,12 @@ export const assetsCategoryReducer = (state = initialState, action) => {
                 ...state,
                 category: action.payload,
             };
+            case actionTypes.UPDATE_ADMIN_ASSETS_CATEGORY:
+                return {
+                  ...state,
+                  success: action.payload,
+                  error: null,
+                };
             case actionTypes.DELETE_ASSETS_CATEGORY:
                 const assetCategoriesIdToDelete = action.payload;
                 return {

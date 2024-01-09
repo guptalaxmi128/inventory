@@ -1,74 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Breadcrumb, Button, Space, Table, Input, Modal, Tag } from "antd";
-import { EditOutlined, HomeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useSelector, useDispatch } from "react-redux";
+import {
+  EditOutlined,
+  HomeOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
+} from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import "../employees/Employees.css";
 import { getAdminTicket } from "../../../actions/admin/ticket/ticket";
 
-const columns = [
-  {
-    title: "Image",
-    dataIndex: "attachment",
-    key: "avatar",
-    render: (attachments) => (
-      <div>
-        {Array.isArray(attachments) &&
-          attachments.map((attachment, index) => (
-            <div key={index}>{attachment.attachment_OriginalName}</div>
-          ))}
-      </div>
-    ),
-  },
-  {
-    title: "Ticket Number",
-    dataIndex: "ticketNumber",
-    key: "ticketNumber",
-  },
-  {
-    title: "Ticket Category",
-    dataIndex: "ticketCategory",
-    key: "ticketCategory",
-  },
-  {
-    title: "Subject",
-    dataIndex: "subject",
-    key: "subject",
-  },
-
-  {
-    title: "Detail",
-    dataIndex: "details",
-    key: "details",
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: (status) => (
-      <Tag color={status === "CREATED" ? "green" : "volcano"}>
-        {status.toUpperCase()}
-      </Tag>
-    ),
-  },
-];
-
-const columnsWithAction = [
-  ...columns,
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
-];
+const localhost = "http://localhost:5000/";
 
 const Ticket = () => {
   const dispatch = useDispatch();
-  const myticket = useSelector((state) => state.adminTicket.ticket);
+  // const myticket = useSelector((state) => state.adminTicket.ticket);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +24,114 @@ const Ticket = () => {
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const columns = [
+    {
+      title: "Image",
+      dataIndex: "attachment",
+      key: "avatar",
+      render: (attachments) => (
+        <div>
+          {Array.isArray(attachments) &&
+            attachments.map((attachment, index) => (
+              <div key={index}>
+                <img
+                  src={attachment.attachment_Path}
+                  alt={attachment.attachment_OriginalName}
+                  style={{ height: "60px", width: "100px" }}
+                />
+              </div>
+            ))}
+        </div>
+      ),
+      // render: (attachments) => {
+      //   const imagePaths = Array.isArray(attachments)
+      //     ? attachments.map((attachment, index) => {
+      //         // const imagePath = `${localhost}/attachment/${attachment.attachment_FileName}`;
+      //         console.log(`Image path for attachment ${index + 1}:`, imagePath);
+      //         return (
+      //           <div key={index}>
+      //             <img
+      //               src={attachment.attachment_Path}
+      //               alt={attachment.attachment_OriginalName}
+      //               style={{ height: "60px", width: "100px" }}
+      //             />
+      //           </div>
+      //         );
+      //       })
+      //     : null;
+
+      //   return <div>{imagePaths}</div>;
+      // },
+    },
+    {
+      title: "Ticket Number",
+      dataIndex: "ticketNumber",
+      key: "ticketNumber",
+      render: (text, record) => (
+        <Link
+          to={`/admin/tickets/${record.id}/timeline`}
+          style={{ color: "black", cursor: "pointer" }}
+        >
+          {text}
+        </Link>
+      ),
+    },
+    {
+      title: "Ticket Category",
+      dataIndex: "ticketCategory",
+      key: "ticketCategory",
+    },
+    {
+      title: "Subject",
+      dataIndex: "subject",
+      key: "subject",
+    },
+
+    {
+      title: "Detail",
+      dataIndex: "details",
+      key: "details",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        let color;
+        switch (status) {
+          case "CREATED":
+            color = "blue";
+            break;
+          case "ONGOING":
+            color = "yellow";
+            break;
+          case "RESOLVED":
+            color = "green";
+            break;
+          default:
+            color = "volcano";
+            break;
+        }
+
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      },
+    },
+  ];
+
+  const columnsWithAction = [
+    ...columns,
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined style={{ fontSize: "16px" }} />
+          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+        </Space>
+      ),
+    },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,12 +149,7 @@ const Ticket = () => {
     fetchData();
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if(myticket && myticket.data)
-  //  setData(myticket.data)
-  // }, [myticket]);
-
-  // console.log("adminTicket",myticket)
+  console.log(data);
 
   const csvData = [
     ["Ticket Number", "Ticket Category", "Subject", "Detail", "Status"],
@@ -218,7 +269,7 @@ const Ticket = () => {
         <p style={{ fontSize: "22px" }}>Ticket</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/admin/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
@@ -229,16 +280,13 @@ const Ticket = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> CSV
             </Button>
             <Button
               type="primary"
@@ -246,7 +294,7 @@ const Ticket = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 

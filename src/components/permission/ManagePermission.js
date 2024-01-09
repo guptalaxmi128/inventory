@@ -12,6 +12,8 @@ import {
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import "../items/Items.css";
 
@@ -138,7 +140,7 @@ const ManagePermission = () => {
         <p style={{ fontSize: "22px" }}>Manage Permission</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/storeKeeper/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
@@ -155,16 +157,14 @@ const ManagePermission = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
+         
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+          <DownloadOutlined />    CSV
             </Button>
             <Button
               type="primary"
@@ -172,7 +172,7 @@ const ManagePermission = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+           <PrinterOutlined />   Print
             </Button>
           </div>
 

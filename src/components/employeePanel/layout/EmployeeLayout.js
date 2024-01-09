@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -6,24 +6,35 @@ import {
   PlusCircleOutlined,
   BarsOutlined,
   KeyOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
-import { useLocation, Link } from "react-router-dom";
-import { Layout, Menu, theme } from "antd";
+import { useLocation, Link, useNavigate } from "react-router-dom";
+import { Layout, Menu, theme, message } from "antd";
+import { useDispatch } from "react-redux";
 import Dashboard from "../dashboard/Dashboard";
 import Create from "../ticket/Create";
 import MyTicket from "../ticket/MyTicket";
 import EmployeePassword from "../employeePassword/EmployeePassword";
 import EmployeeProfile from "../employeeProfile/EmployeeProfile";
+import Assets from "../assets/Assets";
+import { LOGOUT_EMPLOYEE } from "../../../constants/actionTypes";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Sider } = Layout;
 const { SubMenu } = Menu;
 
 const EmployeeLayout = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  const handleLogout = () => {
+    dispatch({ type: LOGOUT_EMPLOYEE });
+    message.success("Employee logout successfully!");
+    navigate("/");
+  };
 
   const menuItems = [
     {
@@ -54,28 +65,37 @@ const EmployeeLayout = () => {
     },
     {
       key: "3",
+      icon: <DashboardOutlined />,
+      label: "Assets",
+      link: "/employee/assets",
+    },
+    {
+      key: "4",
       icon: <UserOutlined />,
       label: "Profile",
       subMenu: [
         {
-          key: "3-1",
-          label: "Change Password",
-          link: "/employee/employee-change-password",
-          icon: <KeyOutlined />,
-        },
-        {
-          key: "3-2",
+          key: "4-1",
           label: "Profile",
           link: "/employee/employee-profile",
           icon: <UserOutlined />,
         },
+        {
+          key: "4-2",
+          label: "Change Password",
+          link: "/employee/employee-change-password",
+          icon: <KeyOutlined />,
+        },
       ],
     },
 
-    { key: "4", icon: <LogoutOutlined />, label: "Logout", link:"/" },
+    {
+      key: "5",
+      label: "Logout",
+      icon: <LogoutOutlined />,
+      onClick: handleLogout,
+    },
   ];
-
-  const [openKeys, setOpenKeys] = useState(["6"]);
 
   return (
     <Layout>
@@ -88,6 +108,7 @@ const EmployeeLayout = () => {
         onCollapse={(collapsed, type) => {
           console.log(collapsed, type);
         }}
+        style={{ height: "100vh" }}
       >
         <div className="sider-header">
           <div className="demo-logo-vertical" />
@@ -96,9 +117,7 @@ const EmployeeLayout = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["1"]}
-          openKeys={openKeys}
-          onOpenChange={setOpenKeys}
+          // defaultSelectedKeys={["1"]}
         >
           {menuItems.map((item) =>
             item.subMenu ? (
@@ -114,7 +133,11 @@ const EmployeeLayout = () => {
                 ))}
               </SubMenu>
             ) : (
-              <Menu.Item key={item.key} icon={item.icon}>
+              <Menu.Item
+                key={item.key}
+                icon={item.icon}
+                onClick={item.key === "5" ? item.onClick : null}
+              >
                 <Link to={item.link}>{item.label}</Link>
               </Menu.Item>
             )
@@ -123,13 +146,6 @@ const EmployeeLayout = () => {
       </Sider>
 
       <Layout>
-        <Header
-          style={{
-            padding: 0,
-            background: colorBgContainer,
-          }}
-        />
-
         <Content
           style={{
             margin: "24px 16px 0",
@@ -145,18 +161,15 @@ const EmployeeLayout = () => {
             {location.pathname === "/employee/dashboard" && <Dashboard />}
             {location.pathname === "/employee/create-ticket" && <Create />}
             {location.pathname === "/employee/my-ticket" && <MyTicket />}
-            {location.pathname === "/employee/employee-change-password" && <EmployeePassword />}
-            {location.pathname === "/employee/employee-profile" && <EmployeeProfile />}
+            {location.pathname === "/employee/employee-change-password" && (
+              <EmployeePassword />
+            )}
+            {location.pathname === "/employee/employee-profile" && (
+              <EmployeeProfile />
+            )}
+            {location.pathname === "/employee/assets" && <Assets />}
           </div>
         </Content>
-
-        <Footer
-          style={{
-            textAlign: "center",
-          }}
-        >
-          Inventory Management ©2023 
-        </Footer>
       </Layout>
     </Layout>
   );

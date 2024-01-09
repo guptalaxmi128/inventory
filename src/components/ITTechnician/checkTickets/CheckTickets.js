@@ -13,7 +13,12 @@ import {
   Tag,
   message,
 } from "antd";
-import { HomeOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  HomeOutlined,
+  PlusOutlined,
+  PrinterOutlined,
+} from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import "./CheckTickets.css";
@@ -22,6 +27,7 @@ import {
   getTicketById,
   updateTicket,
 } from "../../../actions/itTechnician/myTicket/myTicket";
+import TextArea from "antd/es/input/TextArea";
 
 const { Option } = Select;
 
@@ -43,22 +49,42 @@ const columns = [
     key: "ticketCategory",
   },
   {
+    title: "Reply",
+    dataIndex: "reply",
+    key: "reply",
+    render: (reply) => (reply ? <span>{reply}</span> : "-"),
+  },
+  {
     title: "Status",
     dataIndex: "status",
     key: "status",
-    render: (status) => (
-      <Tag color={status === "CREATED" ? "green" : "volcano"}>
-        {status.toUpperCase()}
-      </Tag>
-    ),
+    render: (status) => {
+      let color;
+      switch (status) {
+        case "CREATED":
+          color = "blue";
+          break;
+        case "ONGOING":
+          color = "yellow";
+          break;
+        case "RESOLVED":
+          color = "green";
+          break;
+        default:
+          color = "volcano";
+          break;
+      }
+
+      return <Tag color={color}>{status.toUpperCase()}</Tag>;
+    },
   },
 ];
 
 const CheckTickets = () => {
   const dispatch = useDispatch();
-  const myticket = useSelector(
-    (state) => state.technicianTicket.technicianticket
-  );
+  // const myticket = useSelector(
+  //   (state) => state.technicianTicket.technicianticket
+  // );
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,7 +99,7 @@ const CheckTickets = () => {
   const [details, setDetails] = useState("");
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [id, setId] = useState("");
-  const [loading,setLoading]=useState(true);
+  const [loading, setLoading] = useState(true);
 
   const ticketById = useSelector((state) => state.technicianTicket.ticket);
 
@@ -102,20 +128,27 @@ const CheckTickets = () => {
   }, [ticketById, id]);
 
   const onFinish = async () => {
-    const formData = new FormData();
-    formData.append("id", id);
-    formData.append("subject", subject);
-    formData.append("ticketCategory", ticketCategory);
-    formData.append("reply", reply);
-    formData.append("status", status);
-
-    const res =  await dispatch(updateTicket(formData));
-    if(res.success){
-      message.success(res.message);
-      setStatus("Select status");
-      setReply("");
-      setTicketCategory("Select ticket category");
-      setSubject("");
+    try {
+      const data = {
+        id,
+        subject,
+        ticketCategory,
+        reply,
+        status,
+      };
+      const res = await dispatch(updateTicket(data));
+      if (res.success) {
+        message.success(res.message);
+        setStatus("Select status");
+        setReply("");
+        setTicketCategory("Select ticket category");
+        setSubject("");
+      } else {
+        message.error(res.message);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      message.error(error.response.data.message);
     }
   };
 
@@ -136,14 +169,12 @@ const CheckTickets = () => {
     setIsAddModalVisible(false);
   };
 
-
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-       const res= await dispatch(getTechnicianTicket());
-       setData(res.data)
+        const res = await dispatch(getTechnicianTicket());
+        setData(res.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -153,7 +184,7 @@ const CheckTickets = () => {
 
     fetchData();
   }, [dispatch]);
-  console.log(data)
+  console.log(data);
 
   const columnsWithAction = [
     ...columns,
@@ -163,8 +194,11 @@ const CheckTickets = () => {
       render: (_, record) => (
         <Space size="middle">
           <Button type="default" onClick={() => handleOpenModal(record.id)}>
-            <PlusOutlined style={{ fontSize: "16px" }} /> Add
+            <PlusOutlined style={{ fontSize: "16px" }} /> Action
           </Button>
+          <Link to={`/ITTechnician/tickets/${record.id}/timeline`}>
+            <Button type="default">View Timeline</Button>
+          </Link>
         </Space>
       ),
     },
@@ -298,24 +332,17 @@ const CheckTickets = () => {
           <Breadcrumb.Item>Check Ticket</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      {/* <Link to={"/ITTechnician/add-page"} style={{ textDecoration: "none" }}>
-        <Button type="primary" icon={<PlusOutlined />} size={size}>
-          Add
-        </Button>
-      </Link> */}
+
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> Export
             </Button>
             <Button
               type="primary"
@@ -323,7 +350,7 @@ const CheckTickets = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
@@ -356,7 +383,7 @@ const CheckTickets = () => {
         </div>
       </Modal>
       <Modal
-        title={`Add Ticket - Ticket Number
+        title={`Edit Ticket - Ticket Number
         ${ticketNumber}
         `}
         open={isAddModalVisible}
@@ -405,7 +432,7 @@ const CheckTickets = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} lg={24}>
               <Form.Item label="Ticket Number" style={{ marginBottom: "12px" }}>
                 <Input
                   placeholder="Ticket Number"
@@ -414,8 +441,9 @@ const CheckTickets = () => {
                 />
               </Form.Item>
             </Col>
-
-            <Col xs={24} sm={12}>
+          </Row>
+          <Row gutter={16}>
+            <Col xs={24} sm={12} lg={24}>
               <Form.Item
                 label="Subject"
                 rules={[
@@ -426,7 +454,8 @@ const CheckTickets = () => {
                 ]}
                 style={{ marginBottom: "12px" }}
               >
-                <Input
+                <TextArea
+                  rows={3}
                   placeholder="Enter subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -435,22 +464,26 @@ const CheckTickets = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} lg={24}>
               <Form.Item
                 // name="reply"
                 label="Reply"
                 style={{ marginBottom: "12px" }}
               >
-                <Input
+                <TextArea
+                  rows={3}
                   placeholder="Enter Reply"
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
+          </Row>
+          <Row gutter={16}>
+            <Col xs={24} sm={12} lg={24}>
               <Form.Item label="Details" style={{ marginBottom: "12px" }}>
-                <Input
+                <TextArea
+                  rows={3}
                   placeholder="Details"
                   value={details}
                   disabled={!!ticketById}

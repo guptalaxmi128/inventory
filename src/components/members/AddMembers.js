@@ -14,7 +14,7 @@ const AddMembers = () => {
         <p style={{ fontSize: "22px" }}>Add New Member</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/storeKeeper/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>

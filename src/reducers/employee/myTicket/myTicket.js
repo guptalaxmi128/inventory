@@ -2,6 +2,7 @@ import * as actionTypes from '../../../constants/actionTypes';
 
 const initialState = {
     myticket: [],
+    ticketById:[],
     state: 'idle', 
     error: null
 };
@@ -18,6 +19,11 @@ export const myTicketReducer = (state = initialState, action) => {
                 ...state,
                 myticket: action.payload,
             };
+            case actionTypes.GET_EMPLOYEE_TICKET_BY_ID:
+                return {
+                    ...state,
+                    ticketById: action.payload,
+                };
         default:
             return state;
     }

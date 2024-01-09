@@ -29,6 +29,9 @@ import Navbar from "./components/navbar/Navbar";
 
 import Login from "./components/login/Login";
 import AssetsLayout from "./components/ITTechnician/employees/addAssets/AssetsLayout";
+import TLineLayout from "./components/ITTechnician/timeline/TLineLayout";
+import EmployeeTLine from "./components/employeePanel/timeline/EmployeeTLine";
+import AdminTLine from "./components/admin/timeline/AdminTLine";
 
 
 
@@ -64,6 +67,9 @@ function App() {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/profile" element={<TechnicianProfile />} />
           <Route path="/ITTechnician/add-assets/:attendanceId" element={<AssetsLayout />} />
+          <Route path="/ITTechnician/tickets/:ticketId/timeline" element={<TLineLayout />} />
+          <Route path="/employee/tickets/:ticketId/timeline" element={<EmployeeTLine />} />
+          <Route path="/admin/tickets/:ticketId/timeline" element={<AdminTLine />} />
         </Routes>
       </Router>
     </>

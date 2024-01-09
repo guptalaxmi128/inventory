@@ -14,20 +14,21 @@ import {
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import "./AssetsCategory.css";
 import {
   addAssetsCategory,
   deleteAssetsCategory,
   getAssetsCategory,
+  updateAdminAssetCategory,
 } from "../../../actions/admin/assetsCategory/assetsCategory";
-
-
 
 const AssetsCategory = () => {
   const dispatch = useDispatch();
-  const assets = useSelector((state) => state.assetsCategory.category);
+  // const assets = useSelector((state) => state.assetsCategory.category);
   // console.log(assets)
   const [data, setData] = useState([]);
   const [size, setSize] = useState("large");
@@ -37,6 +38,10 @@ const AssetsCategory = () => {
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categoryName, setCategoryName] = useState("");
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [id, setId] = useState("");
   const [form] = Form.useForm();
 
   const columns = [
@@ -50,18 +55,58 @@ const AssetsCategory = () => {
       dataIndex: "categoryNumber",
       key: "categoryNumber",
     },
-  
+
     {
       title: "Action",
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <EditOutlined style={{ fontSize: "16px" }} />
-          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} onClick={()=>handleDelete(record.id)} />
+          <EditOutlined
+            style={{ fontSize: "16px" }}
+            onClick={() => handleEditClick(record.id)}
+          />
+          <DeleteOutlined
+            style={{ color: "red", fontSize: "16px" }}
+            onClick={() => handleDelete(record.id)}
+          />
         </Space>
       ),
     },
   ];
+
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+
+  const handleEditClick = (id) => {
+    const selectedCategory = data.find((item) => item.id === id);
+    if (selectedCategory) {
+      setId(id);
+      setCategoryName(selectedCategory.categoryName);
+      setIsEditModalVisible(true);
+    }
+  };
+
+  const handleEditModalCancel = () => {
+    setIsEditModalVisible(false);
+    form.resetFields();
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const data = {
+        categoryName,
+        id,
+      };
+      const res = await dispatch(updateAdminAssetCategory(data));
+      if (res.success) {
+        message.success(res.message);
+        setIsEditModalVisible(false);
+        form.resetFields();
+      }
+    } catch (error) {
+      console.error(error);
+      message.error(error.response.data.message);
+    }
+  };
 
   const handleDelete = (id) => {
     console.log(`assets category ${id} is clicked to delete`);
@@ -99,8 +144,8 @@ const AssetsCategory = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-      const result=  await dispatch(getAssetsCategory());
-      setData(result.data);
+        const result = await dispatch(getAssetsCategory());
+        setData(result.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -110,10 +155,6 @@ const AssetsCategory = () => {
 
     fetchData();
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (assets) setData(assets.data);
-  // }, [assets]);
 
   const csvData = [
     ["Category Name", "Category Number"],
@@ -205,6 +246,25 @@ const AssetsCategory = () => {
     printWindow.print();
     printWindow.close();
   };
+
+  const filterData = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredData(null);
+    } else {
+      const filtered = data?.filter((item) => {
+        return (
+          item.categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.categoryNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [searchQuery]);
+
   return (
     <div>
       {successMsg && (
@@ -232,16 +292,13 @@ const AssetsCategory = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> CSV
             </Button>
             <Button
               type="primary"
@@ -249,16 +306,24 @@ const AssetsCategory = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." />
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
-        <Table columns={columns} dataSource={data} loading={loading} />
+        <Table
+          columns={columns}
+          dataSource={filteredData || data}
+          loading={loading}
+        />
       </div>
       <Modal
         title="Add Assets Category"
@@ -296,6 +361,34 @@ const AssetsCategory = () => {
       >
         <p>Review the table data below before printing:</p>
         <Table columns={columns} dataSource={printData} pagination={false} />
+      </Modal>
+
+      <Modal
+        title="Edit Assets Category"
+        visible={isEditModalVisible}
+        onOk={handleUpdate}
+        onCancel={handleEditModalCancel}
+        cancelText="Cancel"
+        okText="Update"
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Category Name"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the category name",
+              },
+            ]}
+            style={{ marginBottom: "12px" }}
+          >
+            <Input
+              placeholder="Enter category name"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

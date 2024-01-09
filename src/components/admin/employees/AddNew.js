@@ -84,7 +84,7 @@ const AddNew = () => {
         <p style={{ fontSize: "22px" }}>Add New Employee</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/admin/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>

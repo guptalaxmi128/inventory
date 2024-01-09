@@ -1,17 +1,38 @@
-import React, { useState,useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Input, Modal,Tag} from "antd";
+import React, { useState, useEffect } from "react";
+import { Breadcrumb, Button, Space, Table, Input, Modal, Tag } from "antd";
 import {
   EditOutlined,
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
-import { useSelector,useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import "./Ticket.css";
 import { getMyTicket } from "../../../actions/employee/myTicket/myTicket";
 
+
+const MyTicket = () => {
+  const dispatch = useDispatch();
+ 
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [size, setSize] = useState("large");
+  const [printData, setPrintData] = useState([]);
+  const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pageSize,setPageSize]=useState(5);
+  
 const columns = [
+  {
+    title: "SNo",
+    dataIndex: "sno",
+    key: "sno",
+    render:(text,record,index)=>index+1
+  },
   {
     title: "Image",
     dataIndex: "attachment",
@@ -20,7 +41,13 @@ const columns = [
       <div>
         {Array.isArray(attachments) &&
           attachments.map((attachment, index) => (
-            <div key={index}>{attachment.attachment_OriginalName}</div>
+            <div key={index}>
+              <img
+                src={attachment.attachment_Path}
+                alt={attachment.attachment_OriginalName}
+                style={{height:'60px',width:'100px'}}
+              />
+            </div>
           ))}
       </div>
     ),
@@ -29,6 +56,14 @@ const columns = [
     title: "Ticket Number",
     dataIndex: "ticketNumber",
     key: "ticketNumber",
+    render: (text, record) => (
+      <Link
+        to={`/employee/tickets/${record.id}/timeline`}
+        style={{ color: "black", cursor: "pointer" }}
+      >
+        {text}
+      </Link>
+    ),
   },
   {
     title: "Ticket Category",
@@ -47,48 +82,50 @@ const columns = [
     key: "details",
   },
   {
-    title: "Status", 
-    dataIndex: "status", 
-    key: "status", 
-    render: (status) => ( 
-      <Tag color={status === "CREATED" ? "green" : "volcano"}>
-        {status.toUpperCase()}
-      </Tag>
-    ),
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    render: (status) => {
+      let color;
+      switch (status) {
+        case "CREATED":
+          color = "blue";
+          break;
+        case "ONGOING":
+          color = "yellow";
+          break;
+        case "RESOLVED":
+          color = "green";
+          break;
+        default:
+          color = "volcano";
+          break;
+      }
+
+      return <Tag color={color}>{status.toUpperCase()}</Tag>;
+    },
   },
 ];
-
 
 const columnsWithAction = [
   ...columns,
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
+  // {
+  //   title: "Action",
+  //   key: "action",
+  //   render: (_, record) => (
+  //     <Space size="middle">
+  //       <EditOutlined style={{ fontSize: "16px" }} />
+  //       <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+  //     </Space>
+  //   ),
+  // },
 ];
-
-const MyTicket = () => {
-  const dispatch=useDispatch();
-  const myticket=useSelector((state)=>state.myTicket.myticket);
-  const [data,setData]=useState([]);
-  const [filteredData, setFilteredData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [size, setSize] = useState("large");
-  const [printData, setPrintData] = useState([]);
-  const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
-  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res= await dispatch(getMyTicket());
+        const res = await dispatch(getMyTicket());
         setData(res.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
@@ -99,12 +136,6 @@ const MyTicket = () => {
 
     fetchData();
   }, [dispatch]);
-  console.log(data)
-
-  // useEffect(() => {
-  //   if(myticket)
-  //  setData(myticket.data)
-  // }, [myticket]);
 
   const csvData = [
     ["Ticket Number", "Ticket Category", "Subject", "Detail", "Status"],
@@ -113,7 +144,7 @@ const MyTicket = () => {
       item.ticketCategory,
       item.subject,
       item.details,
-      item.status
+      item.status,
     ]),
   ];
 
@@ -183,7 +214,6 @@ const MyTicket = () => {
       columns
         .filter((column) => column.key !== "action" && column.key !== "avatar")
         .forEach((column) => {
-          
           printWindow.document.write(`<td>${record[column.dataIndex]}</td>`);
         });
       printWindow.document.write("</tr>");
@@ -203,7 +233,9 @@ const MyTicket = () => {
       const filtered = data?.filter((item) => {
         return (
           item.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.ticketCategory.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.ticketCategory
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           item.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.status.toLowerCase().includes(searchQuery.toLowerCase())
@@ -223,7 +255,7 @@ const MyTicket = () => {
         <p style={{ fontSize: "22px" }}>My Ticket</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/employee/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
@@ -238,16 +270,13 @@ const MyTicket = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> Export
             </Button>
             <Button
               type="primary"
@@ -255,20 +284,40 @@ const MyTicket = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." 
-                 value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} 
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-         
+
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <Table columns={columnsWithAction} dataSource={filteredData ||data} loading={loading} />
+          <Table
+            columns={columnsWithAction}
+            dataSource={filteredData || data}
+            loading={loading}
+            pagination={{
+            pageSizeOptions: ["5", "10", "20", "30", "50", "100", "all"],
+            showSizeChanger: true,
+            pageSize: pageSize === "all" ? data.length : Number(pageSize),
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} items`,
+            onShowSizeChange: (current, newSize) => {
+              // Handle page size change
+              setPageSize(newSize);
+            },
+            onChange: (page, newSize) => {
+              // Handle page change
+              console.log("Page:", page, "PageSize:", newSize);
+            },
+          }}
+          />
         </div>
       </div>
 

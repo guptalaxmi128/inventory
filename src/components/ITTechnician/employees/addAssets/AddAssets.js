@@ -24,57 +24,45 @@ import { getAssetsCategoryTechnician } from "../../../../actions/itTechnician/as
 
 const { Option } = Select;
 
-const dataSource = [
-  {
-    key: "1",
-    sno: 1,
-    itemName: "Item 1",
-    quantity: 10,
-    issueDate: "2023-10-05",
-    status: "Working",
-  },
-  {
-    key: "2",
-    sno: 2,
-    itemName: "Item 2",
-    quantity: 5,
-    issueDate: "2023-10-06",
-    status: "Not Working",
-  },
-];
-
 const columns = [
   {
     title: "SNO",
     dataIndex: "sno",
     key: "sno",
+    render:(text,record,index)=>index+1
   },
   {
     title: "Item Name",
     dataIndex: "itemName",
     key: "itemName",
   },
+  // {
+  //   title: "Quantity",
+  //   dataIndex: "quantity",
+  //   key: "quantity",
+  // },
   {
-    title: "Quantity",
-    dataIndex: "quantity",
-    key: "quantity",
+    title: "Asset Category",
+    dataIndex: "assetCategory",
+    key: "assetCategory",
   },
   {
     title: "Issue Date",
-    dataIndex: "issueDate",
-    key: "issueDate",
+    dataIndex: "createdAt",
+    key: "createdAt",
+    render: (createdAt) => new Date(createdAt).toLocaleDateString('en-GB'),
   },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-  },
+  // {
+  //   title: "Status",
+  //   dataIndex: "status",
+  //   key: "status",
+  // },
 ];
 
 const AddAssets = (props) => {
   const { attendanceId } = props;
   const dispatch = useDispatch();
-  console.log(attendanceId);
+  // console.log(attendanceId);
   const [selectedDate, setSelectedDate] = useState(null);
   const [assetsData, setAssetsData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
@@ -246,6 +234,21 @@ const AddAssets = (props) => {
               </Select>
             </Form.Item>
           </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              name="itemSerialNo"
+              label="Item Serial No"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter item serial number",
+                },
+              ]}
+              style={{ marginBottom: "12px" }}
+            >
+              <Input placeholder="Item Serial Number" />
+            </Form.Item>
+          </Col>
         </Row>
 
         <Form.Item>
@@ -262,6 +265,7 @@ const AddAssets = (props) => {
       {assetsData?.length > 0 ? (
         <div style={{ marginTop: "20px" }}>
           <h3>IT Assets</h3>
+          <div style={{overflowX:'auto'}}>
           <Table
             dataSource={assetsData}
             columns={columns}
@@ -269,6 +273,7 @@ const AddAssets = (props) => {
             loading={loading}
             className="center-table-data"
           />
+          </div>
         </div>
       ) : null}
     </div>

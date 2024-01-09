@@ -2,8 +2,9 @@ import * as actionTypes from '../../constants/actionTypes';
 
 const initialState = {
     members: [],
-    // deletedEmployee: [],
+    memberById: [],
     state: 'idle', // idle, loading, success, error
+    success:null,
     error: null
 };
 
@@ -20,6 +21,17 @@ export const addMemberReducer = (state = initialState, action) => {
                 ...state,
                 members: action.payload,
             };
+            case actionTypes.GET_MEMBER_BY_ID:
+                return {
+                    ...state,
+                    memberById: action.payload,
+                };
+            case actionTypes.UPDATE_MEMBER:
+                return {
+                  ...state,
+                  success: action.payload,
+                  error: null,
+                };
         //     case actionTypes.GET_DELETE_EMPLOYEE:
         //         return {
         //             ...state,

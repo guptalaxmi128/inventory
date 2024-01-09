@@ -85,7 +85,7 @@ const AddPermission = () => {
         <p style={{ fontSize: "22px" }}>User Permission</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/storeKeeper/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>

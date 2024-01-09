@@ -3,6 +3,7 @@ import * as actionTypes from '../../../constants/actionTypes';
 const initialState = {
     category: [],
     state: 'idle', 
+    success:null,
     error: null
 };
 
@@ -18,6 +19,12 @@ export const assetsCategoryStoreReducer = (state = initialState, action) => {
                 ...state,
                 category: action.payload,
             };
+            case actionTypes.UPDATE_STORE_ASSETS_CATEGORY:
+                return {
+                  ...state,
+                  success: action.payload,
+                  error: null,
+                };
         default:
             return state;
     }

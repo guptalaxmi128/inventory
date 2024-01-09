@@ -1,24 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   DashboardOutlined,
   TeamOutlined,
   LogoutOutlined,
- SafetyCertificateOutlined,
+  SafetyCertificateOutlined,
   KeyOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
 import { Link, useParams } from "react-router-dom";
 import { Layout, Menu, theme } from "antd";
 import AddAssets from "./AddAssets";
 
-
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Sider } = Layout;
 const { SubMenu } = Menu;
 
 const AssetsLayout = () => {
-    const { attendanceId}=useParams();
-    // console.log(attendanceId)
- 
+  const { attendanceId } = useParams();
+  // console.log(attendanceId)
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -50,23 +49,21 @@ const AssetsLayout = () => {
       subMenu: [
         {
           key: "4-1",
-          label: "Change Password",
-          link: "/ITTechnician/change-password",
-          icon: <KeyOutlined />,
-        },
-        {
-          key: "4-2",
           label: "Profile",
           link: "/ITTechnician/profile",
           icon: <UserOutlined />,
         },
+        {
+          key: "4-2",
+          label: "Change Password",
+          link: "/ITTechnician/change-password",
+          icon: <KeyOutlined />,
+        },
       ],
     },
 
-    { key: "5", icon: <LogoutOutlined />, label: "Logout",link:"/" },
+    { key: "5", icon: <LogoutOutlined />, label: "Logout", link: "/" },
   ];
-
-  const [openKeys, setOpenKeys] = useState(["6"]);
 
   return (
     <Layout>
@@ -79,18 +76,13 @@ const AssetsLayout = () => {
         onCollapse={(collapsed, type) => {
           console.log(collapsed, type);
         }}
+        style={{ height: "100vh" }}
       >
         <div className="sider-header">
           <div className="demo-logo-vertical" />
           <h3 style={{ color: "white", textAlign: "center" }}>IT Technician</h3>
         </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={["1"]}
-          openKeys={openKeys}
-          onOpenChange={setOpenKeys}
-        >
+        <Menu theme="dark" mode="inline">
           {menuItems.map((item) =>
             item.subMenu ? (
               <SubMenu key={item.key} icon={item.icon} title={item.label}>
@@ -112,15 +104,7 @@ const AssetsLayout = () => {
           )}
         </Menu>
       </Sider>
-
       <Layout>
-        <Header
-          style={{
-            padding: 0,
-            background: colorBgContainer,
-          }}
-        />
-
         <Content
           style={{
             margin: "24px 16px 0",
@@ -133,17 +117,9 @@ const AssetsLayout = () => {
               background: colorBgContainer,
             }}
           >
-           <AddAssets attendanceId={attendanceId} />
+            <AddAssets attendanceId={attendanceId} />
           </div>
         </Content>
-
-        <Footer
-          style={{
-            textAlign: "center",
-          }}
-        >
-          Inventory Management ©2023 
-        </Footer>
       </Layout>
     </Layout>
   );

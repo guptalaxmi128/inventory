@@ -4,72 +4,31 @@ import {
   Button,
   Space,
   Table,
-  Tag,
   Input,
   Modal,
   Form,
-  Select,
   message,
 } from "antd";
 import {
   EditOutlined,
   HomeOutlined,
   PlusOutlined,
-  DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import "../items/Items.css";
 import {
   addAssetsCategoryStore,
   getAssetsCategoryStore,
+  updateStoreAssetCategory,
 } from "../../actions/storeKeeper/assetsCategory/assetsCategory";
 
-const { Option } = Select;
 
-const columns = [
-  {
-    title: "Category name",
-    dataIndex: "categoryName",
-    key: "categoryName",
-  },
-  {
-    title: "Category number",
-    dataIndex: "categoryNumber",
-    key: "categoryNumber",
-  },
-  // {
-  //   title: "Status",
-  //   key: "status",
-  //   dataIndex: "status",
-  //   render: (_, { status }) => (
-  //     <>
-  //       {status.map((status) => {
-  //         let color = status.length > 5 ? "green" : "volcano";
-
-  //         return (
-  //           <Tag color={color} key={status}>
-  //             {status.toUpperCase()}
-  //           </Tag>
-  //         );
-  //       })}
-  //     </>
-  //   ),
-  // },
-  {
-    title: "Action",
-    key: "action",
-    render: (_, record) => (
-      <Space size="middle">
-        <EditOutlined style={{ fontSize: "16px" }} />
-        <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
-      </Space>
-    ),
-  },
-];
 
 const Category = () => {
   const dispatch = useDispatch();
-  const assets = useSelector((state) => state.assetsCategoryStore.category);
+  // const assets = useSelector((state) => state.assetsCategoryStore.category);
   const [data, setData] = useState([]);
   const [size, setSize] = useState("large");
   const [categoryName, setCategoryName] = useState("");
@@ -78,24 +37,64 @@ const Category = () => {
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [id, setId] = useState("");
   const [form] = Form.useForm();
+
+  const columns = [
+    {
+      title: "SNo",
+      dataIndex: "sno",
+      key: "sno",
+      render:(text,record,index)=>index+1
+    },
+    {
+      title: "Category name",
+      dataIndex: "categoryName",
+      key: "categoryName",
+    },
+    {
+      title: "Category number",
+      dataIndex: "categoryNumber",
+      key: "categoryNumber",
+    },
+
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined
+            style={{ fontSize: "16px" }}
+            onClick={() => handleEditClick(record.id)}
+          />
+          {/* <DeleteOutlined style={{ color: "red", fontSize: "16px" }} /> */}
+        </Space>
+      ),
+    },
+  ];
 
   const handleSave = async () => {
     try {
       const data = {
         categoryName,
       };
-      await dispatch(addAssetsCategoryStore(data));
-
-      setSuccessMsg(true);
-      message.success("Assets category added successfully");
-      setIsModalVisible(false);
-      form.resetFields();
-      setTimeout(() => {
-        setSuccessMsg(false);
-      }, 2000);
+      const res = await dispatch(addAssetsCategoryStore(data));
+      if (res.success) {
+        message.success(res.message);
+        setSuccessMsg(true);
+        setIsModalVisible(false);
+        form.resetFields();
+        setTimeout(() => {
+          setSuccessMsg(false);
+        }, 2000);
+      }
     } catch (error) {
       console.log(error);
+      message.error(error.response.data.message);
     }
   };
 
@@ -114,11 +113,6 @@ const Category = () => {
 
     fetchData();
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   if(assets)
-  //  setData(assets.data)
-  // }, [assets]);
 
   const csvData = [
     ["Category Name", "Category Number"],
@@ -210,6 +204,53 @@ const Category = () => {
     printWindow.print();
     printWindow.close();
   };
+
+  const filterData = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredData(null);
+    } else {
+      const filtered = data?.filter((item) => {
+        return (
+          item.categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.categoryNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [searchQuery]);
+
+  const handleEditClick = (itemId) => {
+    setId(itemId);
+    setIsEditModalVisible(true);
+    const selectedItem = data.find((item) => item.id === itemId);
+    if (selectedItem) {
+      // console.log(selectedItem)
+      setCategory(selectedItem.categoryName)
+    }
+  };
+
+  const handleEditSave = async () => {
+    try {
+      const data = {
+        id,
+        categoryName: category,
+      };
+      const res = await dispatch(updateStoreAssetCategory(data));
+      if (res.success) {
+        message.success(res.message);
+        setIsEditModalVisible(false);
+        setCategory("");
+        setId(null);
+      }
+    } catch (error) {
+      console.error("Error during validation or dispatch:", error);
+      message.error(error.response.data.message);
+    }
+  };
   return (
     <div>
       {successMsg && (
@@ -237,16 +278,13 @@ const Category = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> CSV
             </Button>
             <Button
               type="primary"
@@ -254,16 +292,24 @@ const Category = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." />
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
-        <Table columns={columns} dataSource={data} loading={loading} />
+        <Table
+          columns={columns}
+          dataSource={filteredData || data}
+          loading={loading}
+        />
       </div>
       <Modal
         title="Add Category"
@@ -317,6 +363,33 @@ const Category = () => {
       >
         <p>Review the table data below before printing:</p>
         <Table columns={columns} dataSource={printData} pagination={false} />
+      </Modal>
+      <Modal
+        title="Edit Item"
+        visible={isEditModalVisible}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+        }}
+        onOk={handleEditSave}
+        okText="Update"
+        cancelText="Close"
+      >
+        <Form layout="vertical">
+          <Form.Item
+            label="Category Name"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the category name",
+              },
+            ]}
+          >
+            <Input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

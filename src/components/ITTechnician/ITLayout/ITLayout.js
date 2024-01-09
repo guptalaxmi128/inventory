@@ -1,31 +1,40 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   DashboardOutlined,
   TeamOutlined,
   LogoutOutlined,
   UserOutlined,
   KeyOutlined,
-  SafetyCertificateOutlined
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
-import { Link, useLocation } from "react-router-dom";
-import { Layout, Menu, theme } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Layout, Menu, theme, message } from "antd";
+import { useDispatch } from "react-redux";
 import Dashboard from "../dashboard/Dashboard";
 import Employees from "../employees/Employees";
 import CheckTickets from "../checkTickets/CheckTickets";
 import AddAssets from "../employees/addAssets/AddAssets";
 import ChangePassword from "../changePassword/ChangePassword";
-import TechnicianProfile from "../technicianProfile/TechnicianProfile";
-// import AddPage from "../checkTickets/addPage/AddPage";
+import Profile from "../technicianProfile/Profile";
+import { LOGOUT_TECHNICIAN } from "../../../constants/actionTypes";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Sider } = Layout;
 const { SubMenu } = Menu;
 
 const ITLayout = () => {
   const location = useLocation();
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  const handleLogout = () => {
+    dispatch({ type: LOGOUT_TECHNICIAN });
+    message.success("Technician logout successfully!");
+    navigate("/");
+  };
 
   const menuItems = [
     {
@@ -54,23 +63,26 @@ const ITLayout = () => {
       subMenu: [
         {
           key: "4-1",
-          label: "Change Password",
-          link: "/ITTechnician/change-password",
-          icon: <KeyOutlined />,
-        },
-        {
-          key: "4-2",
           label: "Profile",
           link: "/ITTechnician/profile",
           icon: <UserOutlined />,
         },
+        {
+          key: "4-2",
+          label: "Change Password",
+          link: "/ITTechnician/change-password",
+          icon: <KeyOutlined />,
+        },
       ],
     },
 
-    { key: "5", icon: <LogoutOutlined />, label: "Logout",link:"/" },
+    {
+      key: "5",
+      label: "Logout",
+      icon: <LogoutOutlined />,
+      onClick: handleLogout,
+    },
   ];
-
-  const [openKeys, setOpenKeys] = useState(["6"]);
 
   return (
     <Layout>
@@ -83,18 +95,13 @@ const ITLayout = () => {
         onCollapse={(collapsed, type) => {
           console.log(collapsed, type);
         }}
+        style={{ height: "100vh" }}
       >
         <div className="sider-header">
           <div className="demo-logo-vertical" />
           <h3 style={{ color: "white", textAlign: "center" }}>IT Technician</h3>
         </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={["1"]}
-          openKeys={openKeys}
-          onOpenChange={setOpenKeys}
-        >
+        <Menu theme="dark" mode="inline">
           {menuItems.map((item) =>
             item.subMenu ? (
               <SubMenu key={item.key} icon={item.icon} title={item.label}>
@@ -109,7 +116,11 @@ const ITLayout = () => {
                 ))}
               </SubMenu>
             ) : (
-              <Menu.Item key={item.key} icon={item.icon}>
+              <Menu.Item
+                key={item.key}
+                icon={item.icon}
+                onClick={item.key === "5" ? item.onClick : null}
+              >
                 <Link to={item.link}>{item.label}</Link>
               </Menu.Item>
             )
@@ -118,12 +129,12 @@ const ITLayout = () => {
       </Sider>
 
       <Layout>
-        <Header
+        {/* <Header
           style={{
             padding: 0,
             background: colorBgContainer,
           }}
-        />
+        /> */}
 
         <Content
           style={{
@@ -133,7 +144,7 @@ const ITLayout = () => {
           <div
             style={{
               padding: 24,
-              minHeight:496,
+              minHeight: 496,
               background: colorBgContainer,
             }}
           >
@@ -143,20 +154,12 @@ const ITLayout = () => {
               <CheckTickets />
             )}
             {location.pathname === "/ITTechnician/add-assets" && <AddAssets />}
-            {location.pathname === "/ITTechnician/change-password" && <ChangePassword />}
-            {location.pathname === "/ITTechnician/profile" && <TechnicianProfile />}
-            {/* {location.pathname.startsWith('/ITTechnician/add-page') && <AddPage />} */}
-
+            {location.pathname === "/ITTechnician/change-password" && (
+              <ChangePassword />
+            )}
+            {location.pathname === "/ITTechnician/profile" && <Profile />}
           </div>
         </Content>
-
-        <Footer
-          style={{
-            textAlign: "center",
-          }}
-        >
-          Inventory Management ©2023
-        </Footer>
       </Layout>
     </Layout>
   );

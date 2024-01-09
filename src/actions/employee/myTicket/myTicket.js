@@ -1,4 +1,4 @@
-import { ADD_MY_TICKET, GET_MY_TICKET } from "../../../constants/actionTypes";
+import { ADD_MY_TICKET, GET_MY_TICKET,GET_EMPLOYEE_TICKET_BY_ID } from "../../../constants/actionTypes";
 import * as api from "../../../api";
 
 
@@ -25,3 +25,14 @@ export const getMyTicket = () => async (dispatch) => {
         throw error;
     }
 };
+
+export const getEmployeeTicketById = (id) => async (dispatch) => {
+    try {
+        const { data } = await api.getEmployeeTicketById(id);
+        dispatch({ type: GET_EMPLOYEE_TICKET_BY_ID, payload: data });
+        return data;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}

@@ -18,6 +18,11 @@ import assetsTechnician from './itTechnician/assets/assets';
 import assets from './admin/assets/assets';
 import assetsStore from './storeKeeper/assets/assets';
 import technicianCategory from './itTechnician/assetsCategory/assetsCategory';
+import employeeDashboard from './employee/dashboard/dashboard';
+import technicianDashboard from './itTechnician/dashboard/dashboard';
+import adminDashboard from './admin/dashboard/dashboard';
+import storeKeeperDashboard from './storeKeeper/dashboard/dashboard';
+import employeeAssets from './employee/assets/assets';
 
 export const reducers = combineReducers({
 auth,
@@ -38,6 +43,11 @@ technicianEmployee,
 assetsTechnician,
 assets,
 assetsStore,
-technicianCategory
+technicianCategory,
+employeeDashboard,
+technicianDashboard,
+adminDashboard,
+storeKeeperDashboard,
+employeeAssets
 
 });

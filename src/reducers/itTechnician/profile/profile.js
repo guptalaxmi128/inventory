@@ -3,6 +3,7 @@ import * as actionTypes from '../../../constants/actionTypes';
 const initialState = {
     technician: [],
     state: 'idle', 
+    success:null,
     error: null
 };
 
@@ -14,6 +15,12 @@ export const technicianProfileReducer = (state = initialState, action) => {
                 ...state,
                 technician: action.payload,
             };
+            case actionTypes.UPDATE_TECHNICIAN_PROFILE:
+                return {
+                  ...state,
+                  success: action.payload,
+                  error: null,
+                };
         default:
             return state;
     }

@@ -1,21 +1,26 @@
-import React, { useState,useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Input, Modal} from "antd";
-import { HomeOutlined, PlusOutlined } from "@ant-design/icons";
-import { useDispatch,useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { Breadcrumb, Button, Space, Table, Input, Modal } from "antd";
+import {
+  PrinterOutlined,
+  DownloadOutlined,
+  HomeOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import "./Employees.css";
 import { getTechnicianEmployee } from "../../../actions/itTechnician/employee/employee";
 
-
-
 const Employees = () => {
-  const dispatch=useDispatch();
-  const employee=useSelector((state)=>state.technicianEmployee.technicianemployee);
-  const [data,setData]=useState([]);
+  const dispatch = useDispatch();
+  // const employee=useSelector((state)=>state.technicianEmployee.technicianemployee);
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [size, setSize] = useState("large");
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
-  const [loading,setLoading]=useState(true);
+  const [loading, setLoading] = useState(true);
 
   const columns = [
     {
@@ -38,11 +43,8 @@ const Employees = () => {
       dataIndex: "attendanceId",
       key: "attendanceId",
     },
-  
-   
   ];
-  
-  
+
   const columnsWithAction = [
     ...columns,
     {
@@ -50,7 +52,10 @@ const Employees = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Link to= {`/ITTechnician/add-assets/${record.attendanceId}`} style={{ textDecoration: "none" }}>
+          <Link
+            to={`/ITTechnician/add-assets/${record.attendanceId}`}
+            style={{ textDecoration: "none" }}
+          >
             <Button type="default">
               <PlusOutlined style={{ fontSize: "16px" }} /> Add Assets
             </Button>
@@ -60,23 +65,22 @@ const Employees = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await dispatch(getTechnicianEmployee());
+        setData(res.data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          setLoading(true);
-         const res= await dispatch(getTechnicianEmployee());
-         setData(res.data)
-        } catch (error) {
-          console.error("Error fetching tickets:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchData();
-    }, [dispatch]);
-    console.log(data)
+    fetchData();
+  }, [dispatch]);
+  console.log(data);
 
   const csvData = [
     ["Name", "Department", "Post", "Attendance Id"],
@@ -166,6 +170,26 @@ const Employees = () => {
     printWindow.close();
   };
 
+  const filterData = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredData(null);
+    } else {
+      const filtered = data?.filter((item) => {
+        return (
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.post.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.attendanceId.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [searchQuery]);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -179,24 +203,17 @@ const Employees = () => {
           <Breadcrumb.Item>Employees</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      <Link to={"/ITTechnician/add-assets"} style={{ textDecoration: "none" }}>
-        <Button type="primary" icon={<PlusOutlined />} size={size}>
-          Add Assets
-        </Button>
-      </Link>
+
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> Export
             </Button>
             <Button
               type="primary"
@@ -204,16 +221,25 @@ const Employees = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
+              <PrinterOutlined />
               Print
             </Button>
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." />
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <Table columns={columnsWithAction} dataSource={data} loading={loading} />
+          <Table
+            columns={columnsWithAction}
+            dataSource={filteredData || data}
+            loading={loading}
+          />
         </div>
       </div>
 

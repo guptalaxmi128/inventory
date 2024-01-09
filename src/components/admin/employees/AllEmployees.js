@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { Breadcrumb, Button, Space, Table, Input, Modal } from "antd";
+import {
+  Breadcrumb,
+  Button,
+  Space,
+  Table,
+  Input,
+  Modal,
+  Form,
+  Select,
+  message,
+} from "antd";
 import {
   EditOutlined,
   HomeOutlined,
-  PlusOutlined,
+  DownloadOutlined,
   DeleteOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import QRCode from "react-qr-code";
-import { useSelector, useDispatch } from "react-redux";
+import html2canvas from "html2canvas";
+import { useDispatch } from "react-redux";
 import "./Employees.css";
-import { getMember} from "../../../actions/addMember/addMember";
-import { getAdminAssetsById} from "../../../actions/admin/assets/assets";
+import {
+  getMember,
+  getMemberById,
+  updateMember,
+} from "../../../actions/addMember/addMember";
+import { getAssignAssets } from "../../../actions/admin/assets/assets";
 
-
+const { Option } = Select;
 
 const AllEmployees = () => {
   const dispatch = useDispatch();
 
-  const member = useSelector((state) => state.addMember.members);
+  // const member = useSelector((state) => state.addMember.members);
   // console.log(member);
 
   const [data, setData] = useState([]);
@@ -27,25 +43,53 @@ const AllEmployees = () => {
   const [printData, setPrintData] = useState([]);
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [employeeData,setEmployeeData]=useState([]);
-  const [id,setId]=useState('');
+  const [employeeData, setEmployeeData] = useState([]);
+  const [qrCodeModalVisible, setQrCodeModalVisible] = useState(false);
+  const [selectedQrCode, setSelectedQrCode] = useState("");
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [department, setDepartment] = useState("");
+  const [post, setPost] = useState("Select Post");
+  const [attendanceId, setAttendanceId] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [selectedId, setSelectedId] = useState("");
+  const [isEmployee, setIsEmployee] = useState(false);
+  const [pageSize,setPageSize]=useState(5);
+  const [form] = Form.useForm();
+  
+
+  const validateMobileNumber = (_, value) => {
+    if (value && !/^\d{10}$/.test(value)) {
+      return Promise.reject(new Error("Mobile number must have 10 digits"));
+    }
+    return Promise.resolve();
+  };
   const columns = [
+    {
+      title: "SNo",
+      dataIndex: "sno",
+      key: "sno",
+      render:(text,record,index)=>index+1
+    },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       onCell: (record) => {
         return {
-          onClick: () => handleNameClick(record.id), 
+          onClick: () => handleNameClick(record.id),
+          style: { cursor: "pointer" },
         };
       },
     },
     {
-      title: " Email",
+      title: "Email",
       dataIndex: "email",
       key: "email",
     },
-  
+
     {
       title: "Mobile Number",
       dataIndex: "mobileNumber",
@@ -69,10 +113,17 @@ const AllEmployees = () => {
     {
       title: "QR Code",
       key: "qrcode",
-      render: (_, record) => <QRCode size={50} value={record.qrImage} />,
+      render: (_, record) => (
+        <QRCode
+          size={50}
+          value={record.qrImage}
+          style={{ cursor: "pointer" }}
+          onClick={() => handleQRCodeClick(record.qrImage)}
+        />
+      ),
     },
   ];
-  
+
   const columnsWithAction = [
     ...columns,
     {
@@ -80,19 +131,63 @@ const AllEmployees = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <EditOutlined style={{ fontSize: "16px" }} />
-          <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
+          <EditOutlined
+            style={{ fontSize: "16px" }}
+            onClick={() => handleEditClick(record.id)}
+          />
+          {/* <DeleteOutlined style={{ color: "red", fontSize: "16px" }} /> */}
+          <Button onClick={handleDownloadQRCode} type="primary">
+            <DownloadOutlined /> QR Code
+          </Button>
         </Space>
       ),
     },
   ];
 
-  const handleNameClick = (userId) => {
-    setId(userId)
-    console.log("Clicked on Name with id:", userId);
-    
+  const handleDownloadQRCode = async () => {
+    try {
+      const wrapper = document.createElement("div");
+      wrapper.style.width = "200px";
+      wrapper.style.height = "200px";
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.justifyContent = "center";
+      document.body.appendChild(wrapper);
+      const qrCodeElement = document.querySelector("#qrCodeImage");
+      qrCodeElement.style.width = "100%";
+      qrCodeElement.style.height = "100%";
+      wrapper.appendChild(qrCodeElement);
+      const canvas = await html2canvas(wrapper);
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = dataURL;
+      link.download = "qrcode.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      document.body.removeChild(wrapper);
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+    }
   };
-  
+
+  const handleNameClick = async (userId) => {
+    setId(userId);
+
+    const selectedEmployee = data.find((employee) => employee.id === userId);
+    if (selectedEmployee && selectedEmployee.post === "EMPLOYEE") {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAssignAssets(userId));
+        setEmployeeData([result.data]);
+        setIsEmployee(true);
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,8 +209,14 @@ const AllEmployees = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const result = await dispatch(getAdminAssetsById(id));
-        setEmployeeData(result.data);
+        const result = await dispatch(getMemberById(selectedId));
+        console.log(result);
+        setName(result.data.name);
+        setMobileNumber(result.data.mobileNumber);
+        setAttendanceId(result.data.attendanceId);
+        setEmail(result.data.email);
+        setDepartment(result.data.department);
+        setPost(result.data.post);
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -124,14 +225,10 @@ const AllEmployees = () => {
     };
 
     fetchData();
-  }, [dispatch,id]);
+  }, [dispatch, selectedId]);
 
-  console.log(employeeData)
-
-  // useEffect(() => {
-  //   if(member && member.data)
-  //  setData(member.data)
-  // }, [member]);
+  console.log(employeeData);
+  console.log(name);
 
   const csvData = [
     ["Name", "Email", "Mobile Number", "Department", "Post", "Attendance Id"],
@@ -245,37 +342,115 @@ const AllEmployees = () => {
     filterData();
   }, [searchQuery]);
 
+  const handleQRCodeClick = (qrCode) => {
+    setSelectedQrCode(qrCode);
+    setQrCodeModalVisible(true);
+  };
+
+  const handleEditClick = (id) => {
+    setSelectedId(id);
+    setEditModalVisible(true);
+  };
+
+  const handleEditModalCancel = () => {
+    setEditModalVisible(false);
+    form.resetFields();
+  };
+
+  const handleEditModalOk = async () => {
+    try {
+      const data = {
+        name,
+        mobileNumber,
+        email,
+        post,
+        department,
+        attendanceId,
+        id: selectedId,
+      };
+      // console.log(member);
+      const res = await dispatch(updateMember(data));
+      if (res.success) {
+        message.success(res.message);
+        setEditModalVisible(false);
+        form.resetFields();
+        setName("");
+        setMobileNumber("");
+        setDepartment("");
+        setEmail("");
+        setPost("Select Post");
+        setAttendanceId("");
+      }
+    } catch (error) {
+      console.log(error);
+      message.error(error.response.data.message);
+    }
+  };
+
+  const handlePostChange = (value) => {
+    setPost(value);
+  };
+
+  const column = [
+    {
+      title: "SNo",
+      dataIndex: "sno",
+      key: "sno",
+      render: (text, record, index) => index + 1,
+    },
+    {
+      title: "Item Name",
+      dataIndex: "emplyee_asset_association",
+      key: "itemName",
+      render: (association) =>
+        association.map((item) => item.itemName).join(", "),
+    },
+    {
+      title: "Quantity",
+      dataIndex: "emplyee_asset_association",
+      key: "quantity",
+      render: (association) =>
+        association.map((item) => item.quantity).join(", "),
+    },
+    {
+      title: "Status",
+      dataIndex: "emplyee_asset_association",
+      key: "status",
+      render: (association) =>
+        association.map((item) => item.status).join(", "),
+    },
+    {
+      title: "Date",
+      dataIndex: "emplyee_asset_association",
+      key: "date",
+      render: (association) => association.map((item) => item.date).join(", "),
+    },
+  ];
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <p style={{ fontSize: "22px" }}>Employees</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/admin/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
           <Breadcrumb.Item>Employees</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      {/* <Link to={"/admin/add-employee"} style={{ textDecoration: "none" }}>
-        <Button type="primary" icon={<PlusOutlined />} size={size}>
-          Add New
-        </Button>
-      </Link> */}
+
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> Export
             </Button>
             <Button
               type="primary"
@@ -283,7 +458,7 @@ const AllEmployees = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
@@ -300,6 +475,21 @@ const AllEmployees = () => {
             columns={columnsWithAction}
             dataSource={filteredData || data}
             loading={loading}
+            pagination={{
+            pageSizeOptions: ["5", "10", "20", "30", "50", "100", "all"],
+            showSizeChanger: true,
+            pageSize: pageSize === "all" ? data.length : Number(pageSize),
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} items`,
+            onShowSizeChange: (current, newSize) => {
+              // Handle page size change
+              setPageSize(newSize);
+            },
+            onChange: (page, newSize) => {
+              // Handle page change
+              console.log("Page:", page, "PageSize:", newSize);
+            },
+          }}
           />
         </div>
       </div>
@@ -313,6 +503,139 @@ const AllEmployees = () => {
         <p>Review the table data below before printing:</p>
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
           <Table columns={columns} dataSource={printData} pagination={false} />
+        </div>
+      </Modal>
+      <Modal
+        title="QR Code"
+        visible={qrCodeModalVisible}
+        onCancel={() => setQrCodeModalVisible(false)}
+        footer={null}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "500px",
+        }}
+      >
+        <QRCode id="qrCodeImage" size={200} type="svg" value={selectedQrCode} />
+      </Modal>
+      <Modal
+        title="Edit Employee"
+        visible={editModalVisible}
+        onCancel={handleEditModalCancel}
+        onOk={handleEditModalOk}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Name"
+            rules={[
+              {
+                required: true,
+                message: "Please enter name",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Email"
+            rules={[
+              {
+                required: true,
+                message: "Please enter an email",
+                type: "email",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Mobile Number"
+            rules={[
+              {
+                required: true,
+                message: "Please enter a mobile number",
+              },
+              {
+                validator: validateMobileNumber,
+              },
+            ]}
+          >
+            <Input
+              placeholder="Mobile Number"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Department"
+            rules={[
+              {
+                required: true,
+                message: "Please enter department",
+              },
+            ]}
+            style={{ marginBottom: "12px" }}
+          >
+            <Input
+              placeholder="Enter department"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Post"
+            rules={[
+              {
+                required: true,
+                message: "Please select post",
+              },
+            ]}
+            style={{ marginBottom: "12px" }}
+            initialValue="Select Post"
+          >
+            <Select value={post} onChange={handlePostChange}>
+              <Option value="EMPLOYEE">Employee</Option>
+              <Option value="STORE KEEPER">Store Keeper</Option>
+              <Option value="IT TECHNICIAN">IT Technician</Option>
+              <Option value="INSTRUCTOR">Instructor</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Attendance Id"
+            rules={[
+              {
+                required: true,
+                message: "Please enter Attendance Id",
+              },
+            ]}
+            style={{ marginBottom: "12px" }}
+          >
+            <Input
+              placeholder="Enter Attendance Id"
+              value={attendanceId}
+              onChange={(e) => setAttendanceId(e.target.value)}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Employee Assets"
+        visible={isEmployee}
+        onCancel={() => setIsEmployee(false)}
+        footer={null}
+      >
+        <div style={{ overflow: "auto" }}>
+          <Table columns={column} dataSource={employeeData} />
         </div>
       </Modal>
     </div>

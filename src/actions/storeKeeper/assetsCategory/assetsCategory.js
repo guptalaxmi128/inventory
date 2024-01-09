@@ -1,4 +1,4 @@
-import { ADD_ASSETS_CATEGORY_STORE ,GET_ASSETS_CATEGORY_STORE} from "../../../constants/actionTypes";
+import { ADD_ASSETS_CATEGORY_STORE ,GET_ASSETS_CATEGORY_STORE,UPDATE_STORE_ASSETS_CATEGORY} from "../../../constants/actionTypes";
 import * as api from "../../../api";
 
 
@@ -25,3 +25,13 @@ export const getAssetsCategoryStore = () => async (dispatch) => {
     }
 };
 
+export const updateStoreAssetCategory = (assetsInfo) => async (dispatch) => {
+    try {
+      const { data } = await api.updateStoreAssetCategory(assetsInfo);
+      dispatch({ type: UPDATE_STORE_ASSETS_CATEGORY, payload: data });
+      return data;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };

@@ -14,8 +14,9 @@ import {
   UserOutlined,
   KeyOutlined
 } from "@ant-design/icons";
-import { Link, useLocation } from "react-router-dom";
-import { Layout, Menu, theme } from "antd";
+import { Link, useLocation,useNavigate } from "react-router-dom";
+import { Layout, Menu, theme,message } from "antd";
+import { useDispatch } from "react-redux";
 import Dashboard from "../dashboard/Dashboard";
 import Items from "../items/Items";
 import Category from "../category/Category";
@@ -30,16 +31,26 @@ import AddProducts from "../products/AddProduct";
 import AddPermission from "../permission/AddPermission";
 import StoreKeeperPassword from "../storeKeeper/storeKeeperPassword/StoreKeeperPassword";
 import StoreKeeperProfile from "../storeKeeper/storeKeeperProfile/StoreKeeperProfile";
+import { LOGOUT_STORE } from "../../constants/actionTypes";
 
 
-const { Header, Content, Footer, Sider } = Layout;
+const {  Content, Sider } = Layout;
 const { SubMenu } = Menu;
 
 const Navbar = () => {
   const location = useLocation();
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  const handleLogout = () => {
+    dispatch({ type: LOGOUT_STORE });
+    message.success("Storekeeper logout successfully!");
+    navigate("/");
+  };
 
   const menuItems = [
     {
@@ -136,22 +147,28 @@ const Navbar = () => {
       subMenu: [
         {
           key: "9-1",
-          label: "Change Password",
-          link: "/storeKeeper/storeKeeper-change-password",
-          icon: <KeyOutlined />,
-        },
-        {
-          key: "9-2",
           label: "Profile",
           link: "/storeKeeper/storeKeeper-profile",
           icon: <UserOutlined />,
         },
+        {
+          key: "9-2",
+          label: "Change Password",
+          link: "/storeKeeper/storeKeeper-change-password",
+          icon: <KeyOutlined />,
+        },
+      
       ],
     },
-    { key: "10", icon: <LogoutOutlined />, label: "Logout",link:"/" },
+    {
+      key: "10",
+      label: "Logout",
+      icon: <LogoutOutlined />,
+      onClick: handleLogout,
+    },
   ];
 
-  const [openKeys, setOpenKeys] = useState(["6"]);
+ 
 
   return (
     <Layout>
@@ -164,6 +181,7 @@ const Navbar = () => {
         onCollapse={(collapsed, type) => {
           console.log(collapsed, type);
         }}
+        style={{height:'100vh'}}
       >
         <div className="sider-header">
           <div className="demo-logo-vertical" />
@@ -174,9 +192,8 @@ const Navbar = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["1"]}
-          openKeys={openKeys}
-          onOpenChange={setOpenKeys}
+          // defaultSelectedKeys={["1"]}
+        
         >
           {menuItems.map((item) =>
             item.subMenu ? (
@@ -192,7 +209,7 @@ const Navbar = () => {
                 ))}
               </SubMenu>
             ) : (
-              <Menu.Item key={item.key} icon={item.icon}>
+              <Menu.Item key={item.key} icon={item.icon}   onClick={item.key === "10" ? item.onClick : null}>
                 <Link to={item.link}>{item.label}</Link>
               </Menu.Item>
             )
@@ -201,12 +218,12 @@ const Navbar = () => {
       </Sider>
 
       <Layout>
-        <Header
+        {/* <Header
           style={{
             padding: 0,
             background: colorBgContainer,
           }}
-        />
+        /> */}
 
         <Content
           style={{
@@ -237,13 +254,7 @@ const Navbar = () => {
           </div>
         </Content>
 
-        <Footer
-          style={{
-            textAlign: "center",
-          }}
-        >
-          Inventory Management ©2023 
-        </Footer>
+       
       </Layout>
     </Layout>
   );

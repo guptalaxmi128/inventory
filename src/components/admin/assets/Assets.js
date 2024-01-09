@@ -1,19 +1,50 @@
-import React, { useState ,useEffect} from "react";
-import { Breadcrumb, Button, Space, Table, message, Input, Modal, Form } from "antd";
+import React, { useState, useEffect } from "react";
+import {
+  Breadcrumb,
+  Button,
+  Space,
+  Table,
+  message,
+  Input,
+  Modal,
+  Form,
+} from "antd";
 import {
   EditOutlined,
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
-import { useDispatch,useSelector } from "react-redux";
-import '../assetsCategory/AssetsCategory.css'; 
-import { getAdminAssets } from "../../../actions/admin/assets/assets";
+import { useDispatch, useSelector } from "react-redux";
+import "../assetsCategory/AssetsCategory.css";
+import {
+  getAdminAssets,
+  getAdminAssetsById,
+  updateAdminAssets,
+} from "../../../actions/admin/assets/assets";
 
+const Assets = () => {
+  const dispatch = useDispatch();
+  // const assets=useSelector((state)=>state.assets.assets)
+  // console.log(assets)
+  const [data, setData] = useState([]);
+  const [size, setSize] = useState("large");
+  const [itemName, setItemName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [printData, setPrintData] = useState([]);
+  const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [id, setId] = useState("");
+  const [pageSize,setPageSize]=useState(5);
+  const [form] = Form.useForm();
 
-
-
-const columns = [
+  const columns = [
     {
       title: "Item name",
       dataIndex: "itemName",
@@ -25,53 +56,44 @@ const columns = [
       key: "assetCategory",
     },
     {
-        title: "Quantity",
-        dataIndex: "quantity",
-        key: "quantity",
-      },
-   
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+
     {
       title: "Action",
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <EditOutlined style={{ fontSize: "16px" }} />
+          <EditOutlined
+            style={{ fontSize: "16px" }}
+            onClick={() => handleEditClick(record.id)}
+          />
           <DeleteOutlined style={{ color: "red", fontSize: "16px" }} />
         </Space>
       ),
     },
   ];
 
-
-const Assets = () => {
-  const dispatch=useDispatch();
-  const assets=useSelector((state)=>state.assets.assets)
-  console.log(assets)
-  const [data,setData]=useState([])
-  const [size, setSize] = useState("large");
-  const [assetsCategory,setAssetsCategory]=useState('');
-  const [successMsg, setSuccessMsg] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [printData, setPrintData] = useState([]); 
-  const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
-  const [loading,setLoading]=useState(false);
-  const [form] = Form.useForm();
-
   const handleSave = async () => {
-   
     try {
       const data = {
-      categoryName: assetsCategory
+        itemName,
+        assetCategory: categoryName,
+        quantity,
+        id,
       };
-      // await dispatch(addAssetsCategory(data));
-     
-      setSuccessMsg(true);
-      message.success("Assets category successfully");
-      setIsModalVisible(false);
-      form.resetFields();
-      setTimeout(() => {
-        setSuccessMsg(false);
-      }, 2000);
+      const res = await dispatch(updateAdminAssets(data));
+
+      if (res.success) {
+        message.success(res.message);
+        setIsModalVisible(false);
+        form.resetFields();
+        setItemName("");
+        setCategoryName("");
+        setQuantity("");
+      }
     } catch (error) {
       console.log(error);
     }
@@ -81,8 +103,8 @@ const Assets = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-       const result= await dispatch(getAdminAssets());
-       setData(result.data);
+        const result = await dispatch(getAdminAssets());
+        setData(result.data);
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -93,25 +115,34 @@ const Assets = () => {
     fetchData();
   }, [dispatch]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await dispatch(getAdminAssetsById(id));
+        setItemName(result.data.itemName);
+        setCategoryName(result.data.assetCategory);
+        setQuantity(result.data.quantity);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-
-  
-  // useEffect(() => {
-  //   if(assets)
-  //  setData(assets.data)
-  // }, [assets]);
-
+    fetchData();
+  }, [dispatch, id]);
 
   const csvData = [
-    ["Item Name","Assets Category","Quantity"], 
-    ...data?.map(item => [item.itemName,item.assetCategory,item.quantity]), 
+    ["Item Name", "Assets Category", "Quantity"],
+    ...data?.map((item) => [item.itemName, item.assetCategory, item.quantity]),
   ];
 
-
   const arrayToCSV = (arr) => {
-    return arr.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    return arr
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
   };
-
 
   const downloadCSV = () => {
     const csvString = arrayToCSV(csvData);
@@ -126,8 +157,8 @@ const Assets = () => {
     document.body.removeChild(a);
   };
 
-  
-  const handleAddCategoryClick = () => {
+  const handleEditClick = (id) => {
+    setId(id);
     setIsModalVisible(true);
   };
 
@@ -141,17 +172,15 @@ const Assets = () => {
     setIsPrintModalVisible(true);
   };
 
-
   const handlePrintModalCancel = () => {
     setIsPrintModalVisible(false);
   };
-
 
   const printTable = () => {
     const printWindow = window.open("", "_blank");
     printWindow.document.open();
     printWindow.document.write("<html><head><title>Print</title>");
-  
+
     // Add custom CSS styles here
     printWindow.document.write(`
       <style>
@@ -164,13 +193,14 @@ const Assets = () => {
         }
       </style>
     `);
-  
+
     printWindow.document.write("</head><body>");
-    printWindow.document.write('<h1 style="text-align: center;">Printed Table</h1>');
+    printWindow.document.write(
+      '<h1 style="text-align: center;">Printed Table</h1>'
+    );
     printWindow.document.write('<table border="1" style="margin: 0 auto;">');
     printWindow.document.write("<tr>");
-  
-   
+
     columns
       .filter((column) => column.key !== "action")
       .forEach((column) => {
@@ -179,7 +209,7 @@ const Assets = () => {
     printWindow.document.write("</tr>");
     printData.forEach((record) => {
       printWindow.document.write("<tr>");
-     
+
       columns
         .filter((column) => column.key !== "action")
         .forEach((column) => {
@@ -187,66 +217,105 @@ const Assets = () => {
         });
       printWindow.document.write("</tr>");
     });
-  
+
     printWindow.document.write("</table>");
     printWindow.document.write("</body></html>");
     printWindow.document.close();
     printWindow.print();
     printWindow.close();
   };
+  const filterData = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredData(null);
+    } else {
+      const filtered = data?.filter((item) => {
+        return (
+          item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.assetCategory.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [searchQuery]);
   return (
     <div>
-      {successMsg && (
-        <div style={{ color: "green" }}>Assets Category added successfully</div>
-      )}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <p style={{ fontSize: "22px" }}>Manage Assets</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/storeKeeper/dashboard">
+            <a href="/admin/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
           <Breadcrumb.Item>Assets</Breadcrumb.Item>
         </Breadcrumb>
       </div>
-      {/* <Button type="primary" icon={<PlusOutlined />} size={size} onClick={handleAddCategoryClick}>
-        Add Assets
-      </Button> */}
+
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
+            <Button
+              type="primary"
+              size={size}
+              className="mobile-button"
+              onClick={downloadCSV}
+            >
+              <DownloadOutlined /> CSV
             </Button>
-            <Button type="primary" size={size} className="mobile-button" onClick={downloadCSV}>
-              CSV
-            </Button>
-            <Button type="primary" size={size} className="mobile-button" onClick={handlePrint}>
-              Print
+            <Button
+              type="primary"
+              size={size}
+              className="mobile-button"
+              onClick={handlePrint}
+            >
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
-       
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." />
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
-
-        <Table columns={columns} dataSource={data} loading={loading} />
+        <Table
+          columns={columns}
+          dataSource={filteredData || data}
+          loading={loading}
+          pagination={{
+            pageSizeOptions: ["5", "10", "20", "30", "50", "100", "all"],
+            showSizeChanger: true,
+            pageSize: pageSize === "all" ? data.length : Number(pageSize),
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} items`,
+            onShowSizeChange: (current, newSize) => {
+              // Handle page size change
+              setPageSize(newSize);
+            },
+            onChange: (page, newSize) => {
+              // Handle page change
+              console.log("Page:", page, "PageSize:", newSize);
+            },
+          }}
+        />
       </div>
       <Modal
         title="Add Assets"
         open={isModalVisible}
         onOk={handleSave}
         onCancel={handleModalCancel}
-        cancelText="Close"
-        okText="Save Changes"
+        cancelText="Cancel"
+        okText="Update"
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="itemName"
             label="Item Name"
             rules={[
               {
@@ -256,24 +325,30 @@ const Assets = () => {
             ]}
             style={{ marginBottom: "12px" }}
           >
-            <Input  placeholder="Enter item name" value={assetsCategory} onChange={(e)=>setAssetsCategory(e.target.value)} />
+            <Input
+              placeholder="Enter item name"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+            />
           </Form.Item>
           <Form.Item
-            name="categoryName"
-            label="Category Name"
+            label="Asset Category"
             rules={[
               {
                 required: true,
-                message: "Please enter the category name",
+                message: "Please enter asset category",
               },
             ]}
             style={{ marginBottom: "12px" }}
           >
-            <Input  placeholder="Enter category name" value={assetsCategory} onChange={(e)=>setAssetsCategory(e.target.value)} />
+            <Input
+              placeholder="Enter asset category"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+            />
           </Form.Item>
 
           <Form.Item
-            name="quantity"
             label="Quantity"
             rules={[
               {
@@ -283,9 +358,12 @@ const Assets = () => {
             ]}
             style={{ marginBottom: "12px" }}
           >
-            <Input  placeholder="Enter quantity" value={assetsCategory} onChange={(e)=>setAssetsCategory(e.target.value)} />
+            <Input
+              placeholder="Enter quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
           </Form.Item>
-         
         </Form>
       </Modal>
       <Modal

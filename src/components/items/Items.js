@@ -16,6 +16,8 @@ import {
   HomeOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { getAssetsCategoryStore } from "../../actions/storeKeeper/assetsCategory/assetsCategory";
@@ -44,6 +46,8 @@ const Items = () => {
   const [assetsCategory, setAssetsCategory] = useState("");
   const [id, setId] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [filteredData, setFilteredData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const columns = [
     {
@@ -293,14 +297,14 @@ const Items = () => {
   const handleCategoryChange = (value) => {
     setAssetsCategory(value);
   };
-  console.log(assetsCategory)
+  // console.log(assetsCategory)
 
   const handleEditSave = async () => {
     try {
       const data = {
         id,
         itemName,
-       assetCategory: assetsCategory,
+        assetCategory: assetsCategory,
         quantity,
       };
       const res = await dispatch(updateAssets(data));
@@ -318,13 +322,33 @@ const Items = () => {
     }
   };
 
+  const filterData = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredData(null);
+    } else {
+      const filtered = data?.filter((item) => {
+        return (
+          item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.assetCategory
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) 
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [searchQuery]);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <p style={{ fontSize: "22px" }}>Manage Items</p>
         <Breadcrumb style={{ margin: "22px 0" }}>
           <Breadcrumb.Item>
-            <a href="/">
+            <a href="/storeKeeper/dashboard">
               <HomeOutlined />
             </a>
           </Breadcrumb.Item>
@@ -342,16 +366,13 @@ const Items = () => {
       <div style={{ marginTop: "30px" }}>
         <div className="button-container">
           <div className="mobile-buttons">
-            <Button type="primary" size={size} className="mobile-button">
-              Copy
-            </Button>
             <Button
               type="primary"
               size={size}
               className="mobile-button"
               onClick={downloadCSV}
             >
-              CSV
+              <DownloadOutlined /> CSV
             </Button>
             <Button
               type="primary"
@@ -359,16 +380,24 @@ const Items = () => {
               className="mobile-button"
               onClick={handlePrint}
             >
-              Print
+              <PrinterOutlined /> Print
             </Button>
           </div>
 
           <div className="mobile-search">
-            <Input.Search placeholder="Search..." />
+            <Input.Search
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
-        <Table columns={columns} dataSource={data} loading={loading} />
+        <Table
+          columns={columns}
+          dataSource={filteredData || data}
+          loading={loading}
+        />
       </div>
       <Modal
         title={"Add Items"}
